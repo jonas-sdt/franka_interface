@@ -3,10 +3,9 @@
   <name>thi_franka_moveit_config</name>
   <version>0.8.1</version>
   <description>
-     An automatically generated package with all the configuration and launch files for using the panda with the MoveIt Motion Planning Framework
+     This package contains the MoveIt! configuration data for the Franka Emika Panda robot. It was derived from the official Franka Emika Panda MoveIt! configuration.
   </description>
   <author email="moveit_releasers@googlegroups.com">MoveIt maintainer team</author>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt maintainer team</maintainer>
 
   <license>BSD</license>
 

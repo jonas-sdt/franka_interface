@@ -4,13 +4,12 @@
   <version>0.0.0</version>
   <description>This ROS pkg gives you an interface to interact with a Franka Emika R3. It creates a library that can be included in C++ projects. Under the hood it uses the MoveIt planning request interface as well as the planning scene interface.</description>
 
+  <author email="jon-schmidt@outlook.de">Jonas Schmid</author>
   <maintainer email="jon-schmidt@outlook.de">Jonas Schmidt</maintainer>
 
-  <license>TODO</license>
+  <license>BSD</license>
 
   <!-- <url type="website">http://wiki.ros.org/franka_interface</url> -->
-
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
 
   <!-- <doc_depend>doxygen</doc_depend> -->
 
