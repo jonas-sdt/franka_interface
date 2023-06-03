@@ -1,0 +1,11 @@
+<!-- This launch file contains custom coordinate frames -->
+<launch>
+
+    <!-- world frame -->
+    <node pkg="tf" type="static_transform_publisher" name="world_to_link0" args="0.0 0.0 0.01045 0 0.014 -0.009 world panda_link0 100" />
+
+    <!-- cameras -->
+    <!-- TODO -->
+
+
+</launch>

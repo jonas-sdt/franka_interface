@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="franka_test_pkg" type="franka_test_pkg_node" name="franka_test_pkg_node" output="screen" />
+</launch>

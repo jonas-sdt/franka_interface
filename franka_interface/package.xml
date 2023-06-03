@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>franka_interface</name>
+  <version>0.0.0</version>
+  <description>This ROS pkg gives you an interface to interact with a Franka Emika R3. It creates a library that can be included in C++ projects. Under the hood it uses the MoveIt planning request interface as well as the planning scene interface.</description>
+
+  <maintainer email="jon-schmidt@outlook.de">Jonas Schmidt</maintainer>
+
+  <license>TODO</license>
+
+  <!-- <url type="website">http://wiki.ros.org/franka_interface</url> -->
+
+  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+
+  <!-- <doc_depend>doxygen</doc_depend> -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>franka_gripper</depend>
+  <depend>geometry_msgs</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_cpp</depend>
+  <depend>moveit_msgs</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_visual_tools</depend>
+  <depend>roscpp</depend>
+  <depend>rviz_visual_tools</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

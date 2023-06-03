@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Create Node",
+			"type": "shell",
+			"icon": {"color": "terminal.ansiWhite", "id": "plus"},
+			"runOptions": {"instanceLimit": 1},
+			"command": "cd ${workspaceFolder} && bash .vscode/create_node.bash %{workspaceFolder} ${input:node_name}",
+			"problemMatcher": [],
+			"group": "build"
+		}
+	],
+    "inputs": [
+        {
+            "id": "node_name",
+            "type": "promptString",
+            "description": "Enter the name of the node you want to create",
+            "default": "node"
+        }
+    ]
+}
