@@ -2,7 +2,7 @@
 #include "moveit/kinematic_constraints/utils.h"
 #include "moveit_msgs/GetCartesianPath.h"
 
-FrankaInterface::FrankaInterface(ros::NodeHandle& nh, std::string robot_description)
+FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_description)
     : nh_(nh),
       tf_listener_(tf_buffer_),
       activate_visualizations_(true),
@@ -20,13 +20,17 @@ FrankaInterface::FrankaInterface(ros::NodeHandle& nh, std::string robot_descript
       gripper_move_action_client_("franka_gripper/move", true),
       gripper_homing_action_client_("franka_gripper/homing", true)
 {
+    // initialize variable that depend on the robot model
     robot_model_loader::RobotModelLoaderPtr robot_model_loader(new robot_model_loader::RobotModelLoader("robot_description"));
     psm_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_model_loader);
     planning_pipeline_ = std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_loader->getModel(), nh, "planning_plugin", "request_adapters"),
 
-    init_planning_scene();
-    cartesian_path_service_ = 
-    nh_.serviceClient<moveit_msgs::GetCartesianPath>("/compute_cartesian_path");
+    // initialize planning scene
+        init_planning_scene();
+
+    // initialize action clients
+    cartesian_path_service_ =
+        nh_.serviceClient<moveit_msgs::GetCartesianPath>("/compute_cartesian_path");
 
     // gripper positions
     gripper_open_goal_.width = 0.08;
@@ -38,8 +42,8 @@ FrankaInterface::FrankaInterface(ros::NodeHandle& nh, std::string robot_descript
 
 void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name, bool prompt)
 {
-    
-    if(activate_visualizations_)
+
+    if (activate_visualizations_)
     {
         visual_tools_.deleteAllMarkers();
         visualize_point(goal_pose, "PTP Goal");
@@ -56,17 +60,18 @@ void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     req.max_velocity_scaling_factor = velocity_scaling_factor_;
     req.max_acceleration_scaling_factor = acceleration_scaling_factor_;
     // req.start_state.joint_state = current_joint_state_;
-    
+
     // add goal constraints
     req.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(end_effector_name, goal_pose, tolerance_pos_, tolerance_angle_));
-    
+
     // get current planning scene from planning scene monitor
-    if(!psm_->requestPlanningSceneState("/get_planning_scene"))
+    if (!psm_->requestPlanningSceneState("/get_planning_scene"))
     {
         ROS_ERROR_STREAM("Could not get planning scene");
         throw std::runtime_error("Could not get planning scene");
     }
-    if (planning_pipeline_ && psm_) {
+    if (planning_pipeline_ && psm_)
+    {
         planning_scene_monitor::LockedPlanningSceneRO planning_scene(psm_);
 
         // TODO: remove when problem fixed
@@ -75,20 +80,22 @@ void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string 
 
         // compute plan
         planning_pipeline_->generatePlan(planning_scene, req, res);
-    } else {
+    }
+    else
+    {
         // handle null pointers
         ROS_ERROR("Planning pipeline or planning scene monitor is null");
         throw std::runtime_error("Planning pipeline or planning scene monitor is null");
     }
 
     // check if planning was successful
-    if(res.error_code_.val != res.error_code_.SUCCESS)
+    if (res.error_code_.val != res.error_code_.SUCCESS)
     {
         ROS_ERROR_STREAM("Could not compute PTP plan successfully. Error Code: " + std::to_string(res.error_code_.val));
         throw std::runtime_error("Could not compute PTP plan successfully");
     }
 
-    if(prompt_before_exec_)
+    if (prompt_before_exec_)
     {
         visual_tools_.prompt("Press 'next' in the RvizVisualToolsGui window to start the demo");
     }
@@ -106,13 +113,13 @@ void FrankaInterface::ptp_rel(geometry_msgs::Pose rel_pose, std::string end_effe
 {
     geometry_msgs::PoseStamped goal_pose;
     goal_pose.pose = rel_pose;
-    goal_pose.header.frame_id = "panda_hand_tcp";    
+    goal_pose.header.frame_id = "panda_hand_tcp";
     ptp_abs(goal_pose, end_effector_name);
 }
 
 void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name, bool prompt)
 {
-    if(activate_visualizations_)
+    if (activate_visualizations_)
     {
         visual_tools_.deleteAllMarkers();
         visualize_point(goal_pose, "Lin Goal");
@@ -149,7 +156,7 @@ void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string 
 
     trajectory = cartesian_path_res.solution;
 
-    if(prompt_before_exec_ || prompt)
+    if (prompt_before_exec_ || prompt)
     {
         visual_tools_.prompt("Press 'next' in the RvizVisualToolsGui window to start execution of the lin motion");
     }
@@ -160,13 +167,13 @@ void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string 
 
     execute_trajectory_action_client_.sendGoal(execute_trajectory_goal);
 
-    //wait for the action to return
+    // wait for the action to return
     bool finished_before_timeout = execute_trajectory_action_client_.waitForResult(ros::Duration(30.0));
 
     if (finished_before_timeout)
     {
         actionlib::SimpleClientGoalState state = execute_trajectory_action_client_.getState();
-        ROS_INFO("Trajectory execution action finished: %s",state.toString().c_str());
+        ROS_INFO("Trajectory execution action finished: %s", state.toString().c_str());
     }
     else
     {
@@ -176,7 +183,7 @@ void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     }
 
     // check if plan execution was successful
-    if(execute_trajectory_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
+    if (execute_trajectory_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
     {
         ROS_ERROR_STREAM("Could not execute trajectory successfully");
         return;
@@ -227,14 +234,14 @@ void FrankaInterface::open_gripper()
 {
     gripper_move_action_client_.sendGoal(gripper_open_goal_);
 
-    //wait for the action to return
-        //wait for the action to return
+    // wait for the action to return
+    // wait for the action to return
     bool finished_before_timeout = gripper_move_action_client_.waitForResult(ros::Duration(30.0));
 
     if (finished_before_timeout)
     {
         actionlib::SimpleClientGoalState state = gripper_move_action_client_.getState();
-        ROS_INFO("Open Gripper action finished: %s",state.toString().c_str());
+        ROS_INFO("Open Gripper action finished: %s", state.toString().c_str());
     }
     else
     {
@@ -244,7 +251,7 @@ void FrankaInterface::open_gripper()
     }
 
     // check if plan execution was successful
-    if(gripper_move_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
+    if (gripper_move_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
     {
         ROS_ERROR_STREAM("Could not open gripper successfully");
         throw std::runtime_error("Could not open gripper successfully");
@@ -255,14 +262,14 @@ void FrankaInterface::close_gripper()
 {
     gripper_move_action_client_.sendGoal(gripper_close_goal_);
 
-    //wait for the action to return
-        //wait for the action to return
+    // wait for the action to return
+    // wait for the action to return
     bool finished_before_timeout = gripper_move_action_client_.waitForResult(ros::Duration(30.0));
 
     if (finished_before_timeout)
     {
         actionlib::SimpleClientGoalState state = gripper_move_action_client_.getState();
-        ROS_INFO("Close Gripper action finished: %s",state.toString().c_str());
+        ROS_INFO("Close Gripper action finished: %s", state.toString().c_str());
     }
     else
     {
@@ -272,7 +279,7 @@ void FrankaInterface::close_gripper()
     }
 
     // check if plan execution was successful
-    if(gripper_move_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
+    if (gripper_move_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
     {
         ROS_ERROR_STREAM("Could not close gripper successfully");
         throw std::runtime_error("Could not close gripper successfully");
@@ -287,14 +294,14 @@ void FrankaInterface::set_gripper_width(double width)
 
     gripper_move_action_client_.sendGoal(goal);
 
-    //wait for the action to return
-        //wait for the action to return
+    // wait for the action to return
+    // wait for the action to return
     bool finished_before_timeout = gripper_move_action_client_.waitForResult(ros::Duration(30.0));
 
     if (finished_before_timeout)
     {
         actionlib::SimpleClientGoalState state = gripper_move_action_client_.getState();
-        ROS_INFO("Set gripper width action finished: %s",state.toString().c_str());
+        ROS_INFO("Set gripper width action finished: %s", state.toString().c_str());
     }
     else
     {
@@ -304,7 +311,7 @@ void FrankaInterface::set_gripper_width(double width)
     }
 
     // check if plan execution was successful
-    if(gripper_move_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
+    if (gripper_move_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
     {
         ROS_ERROR_STREAM("Could not set gripper width successfully");
         throw std::runtime_error("Could not set gripper width successfully");
@@ -322,14 +329,14 @@ void FrankaInterface::grab_object(double width, double force)
 
     gripper_action_client_.sendGoal(goal);
 
-    //wait for the action to return
-        //wait for the action to return
+    // wait for the action to return
+    // wait for the action to return
     bool finished_before_timeout = gripper_action_client_.waitForResult(ros::Duration(30.0));
 
     if (finished_before_timeout)
     {
         actionlib::SimpleClientGoalState state = gripper_action_client_.getState();
-        ROS_INFO("Grab object action finished: %s",state.toString().c_str());
+        ROS_INFO("Grab object action finished: %s", state.toString().c_str());
     }
     else
     {
@@ -339,7 +346,7 @@ void FrankaInterface::grab_object(double width, double force)
     }
 
     // check if plan execution was successful
-    if(gripper_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
+    if (gripper_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
     {
         ROS_ERROR_STREAM("Could not grab object successfully");
         throw std::runtime_error("Could not grab object successfully");
@@ -361,7 +368,9 @@ inline void FrankaInterface::add_collision_object(moveit_msgs::CollisionObject c
 
 inline void FrankaInterface::remove_collision_object(std::string id)
 {
-    custom_collision_objects_.erase(std::remove_if(custom_collision_objects_.begin(), custom_collision_objects_.end(), [id](moveit_msgs::CollisionObject collision_object){return collision_object.id == id;}), custom_collision_objects_.end());
+    custom_collision_objects_.erase(std::remove_if(custom_collision_objects_.begin(), custom_collision_objects_.end(), [id](moveit_msgs::CollisionObject collision_object)
+                                                   { return collision_object.id == id; }),
+                                    custom_collision_objects_.end());
     planning_scene_interface_.removeCollisionObjects(std::vector<std::string>({id}));
 }
 
@@ -379,10 +388,10 @@ inline void FrankaInterface::init_planning_scene()
     psm_->startWorldGeometryMonitor();
     /* listen to joint state updates as well as changes in attached collision objects
                   and update the internal planning scene accordingly*/
-    psm_->startStateMonitor();        
+    psm_->startStateMonitor();
     // // moveit::core::RobotStatePtr robot_state(
     // //     new moveit::core::RobotState(planning_scene_monitor::LockedPlanningSceneRO(psm)->getCurrentState()));
-    // // 
+    // //
     // // const moveit::core::JointModelGroup* joint_model_group = robot_state->getJointModelGroup("panda_arm");
     // create box primitive for table
     shape_msgs::SolidPrimitive table_primitive;
@@ -412,13 +421,13 @@ inline void FrankaInterface::init_planning_scene()
     camera_stand_primitive.dimensions[0] = 0.1;
     camera_stand_primitive.dimensions[1] = 0.1;
     camera_stand_primitive.dimensions[2] = 1;
-    
+
     geometry_msgs::Pose camera_stand_pose;
     camera_stand_pose.orientation.w = 1.0;
     camera_stand_pose.position.x = -0.1;
     camera_stand_pose.position.y = 0.7;
     camera_stand_pose.position.z = 0.5;
-    
+
     // create collision object for camera stand
     moveit_msgs::CollisionObject camera_stand_collision_object;
     camera_stand_collision_object.header.frame_id = "world";
@@ -426,8 +435,7 @@ inline void FrankaInterface::init_planning_scene()
     camera_stand_collision_object.primitives.push_back(camera_stand_primitive);
     camera_stand_collision_object.primitive_poses.push_back(camera_stand_pose);
     camera_stand_collision_object.operation = camera_stand_collision_object.ADD;
-    
-    
+
     // create box primitive for monitor
     shape_msgs::SolidPrimitive monitor_primitive;
     monitor_primitive.type = monitor_primitive.BOX;
@@ -435,7 +443,7 @@ inline void FrankaInterface::init_planning_scene()
     monitor_primitive.dimensions[0] = 0.3;
     monitor_primitive.dimensions[1] = 0.45;
     monitor_primitive.dimensions[2] = 0.45;
-    
+
     tf2::Quaternion q;
     q.setRPY(0.01, -0.01, -0.49);
     geometry_msgs::Pose monitor_pose;
@@ -472,17 +480,18 @@ inline void FrankaInterface::deactivate_table_collision_check()
 {
     // remove default collision objects
     planning_scene_interface_.removeCollisionObjects(std::vector<std::string>({"table", "camera_stand", "monitor"}));
-    
+
     // put all custom collision object ids into vector
     std::vector<std::string> custom_collision_object_ids;
     std::transform(custom_collision_objects_.begin(), custom_collision_objects_.end(), std::back_inserter(custom_collision_object_ids),
-           [](auto&& obj) { return obj.id; });
+                   [](auto &&obj)
+                   { return obj.id; });
 
     // remove custom collision objects
     planning_scene_interface_.removeCollisionObjects(custom_collision_object_ids);
 }
 
-void FrankaInterface::joint_state_callback(const sensor_msgs::JointState::ConstPtr& msg)
+void FrankaInterface::joint_state_callback(const sensor_msgs::JointState::ConstPtr &msg)
 {
     current_joint_state_ = *msg;
 }
