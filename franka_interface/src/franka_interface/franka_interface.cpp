@@ -106,12 +106,18 @@ void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string 
 
     const moveit::core::JointModelGroup* joint_model_group = mgi_->getCurrentState()->getJointModelGroup("panda_arm");
 
+    // transform goal pose to panda_link0 frame
+    geometry_msgs::PoseStamped goal_pose_transformed;
+    goal_pose_transformed.header.frame_id = goal_pose.header.frame_id;
+    goal_pose_transformed.pose = goal_pose.pose;
+    tf_buffer_.transform(goal_pose_transformed, goal_pose_transformed, "panda_link0");
+    
     mgi_->setEndEffectorLink(end_effector_name);
     mgi_->setPlanningTime(5.0);
     mgi_->setMaxVelocityScalingFactor(velocity_scaling_factor_);
     mgi_->setMaxAccelerationScalingFactor(acceleration_scaling_factor_);
     mgi_->setPlannerId("PTP");
-    mgi_->setPoseTarget(goal_pose, end_effector_name);
+    mgi_->setPoseTarget(goal_pose_transformed, end_effector_name);
     moveit::planning_interface::MoveGroupInterface::Plan plan;
     if (mgi_->plan(plan) == moveit::core::MoveItErrorCode::SUCCESS)
     {
