@@ -1,6 +1,8 @@
 #include "franka_interface/franka_interface.hpp"
 #include "moveit/kinematic_constraints/utils.h"
 #include "moveit_msgs/GetCartesianPath.h"
+#include <vector>
+#include <algorithm>
 
 FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_description)
     : nh_(nh),
@@ -20,7 +22,7 @@ FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_descript
       gripper_move_action_client_("franka_gripper/move", true),
       gripper_homing_action_client_("franka_gripper/homing", true)
 {
-    // initialize variable that depend on the robot model
+    // initialize variables that depend on the robot model
     robot_model_loader::RobotModelLoaderPtr robot_model_loader(new robot_model_loader::RobotModelLoader("robot_description"));
     psm_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_model_loader);
     planning_pipeline_ = std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_loader->getModel(), nh, "planning_plugin", "request_adapters"),
@@ -38,6 +40,48 @@ FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_descript
 
     gripper_close_goal_.width = 0.0;
     gripper_close_goal_.speed = 0.1;
+
+    joint_limits_ = {
+        std::make_pair(-2.897246558, 2.897246558), 
+        std::make_pair(-1.832595715, 1.832595715),
+        std::make_pair(-2.897246558, 2.897246558),
+        std::make_pair(-3.071779484, -0.122173048),
+        std::make_pair(-2.879793266, 2.879793266),
+        std::make_pair(0.436332313, 4.625122518),
+        std::make_pair(-3.054326191, 3.054326191)
+    };                                                      // joint limits saved as a pair of min and max values
+
+}
+
+void FrankaInterface::send_planning_request(planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res)
+{
+    // get current planning scene from planning scene monitor
+    if (!psm_->requestPlanningSceneState("/get_planning_scene"))
+    {
+        ROS_ERROR_STREAM("Could not get planning scene");
+        throw std::runtime_error("Could not get planning scene");
+    }
+
+    if (planning_pipeline_ && psm_)
+    {
+        planning_scene_monitor::LockedPlanningSceneRO planning_scene(psm_);
+
+        // compute plan
+        planning_pipeline_->generatePlan(planning_scene, req, res);
+
+        // check if planning was successful
+        if (res.error_code_.val != res.error_code_.SUCCESS)
+        {
+            ROS_ERROR_STREAM("Could not compute PTP plan successfully. Error Code: " + std::to_string(res.error_code.val));
+            throw std::runtime_error("Could not compute PTP plan successfully");
+        }
+    }
+    else
+    {
+        // handle null pointers
+        ROS_ERROR("Planning pipeline or planning scene monitor is null");
+        throw std::runtime_error("Planning pipeline or planning scene monitor is null");
+    }
 }
 
 void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name, bool prompt)
@@ -62,43 +106,58 @@ void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     // req.start_state.joint_state = current_joint_state_;
 
     // add goal constraints
-    req.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(end_effector_name, goal_pose, tolerance_pos_, tolerance_angle_));
+    moveit_msgs::Constraints goal_constraints = kinematic_constraints::constructGoalConstraints(end_effector_name, goal_pose, tolerance_pos_, tolerance_angle_);      
+    req.goal_constraints.push_back(goal_constraints);
 
-    // get current planning scene from planning scene monitor
-    if (!psm_->requestPlanningSceneState("/get_planning_scene"))
-    {
-        ROS_ERROR_STREAM("Could not get planning scene");
-        throw std::runtime_error("Could not get planning scene");
-    }
-    if (planning_pipeline_ && psm_)
-    {
-        planning_scene_monitor::LockedPlanningSceneRO planning_scene(psm_);
-
-        // TODO: remove when problem fixed
-        // print objects in planning scene
-        planning_scene->printKnownObjects();
-
-        // compute plan
-        planning_pipeline_->generatePlan(planning_scene, req, res);
-    }
-    else
-    {
-        // handle null pointers
-        ROS_ERROR("Planning pipeline or planning scene monitor is null");
-        throw std::runtime_error("Planning pipeline or planning scene monitor is null");
-    }
-
-    // check if planning was successful
-    if (res.error_code_.val != res.error_code_.SUCCESS)
-    {
-        ROS_ERROR_STREAM("Could not compute PTP plan successfully. Error Code: " + std::to_string(res.error_code_.val));
-        throw std::runtime_error("Could not compute PTP plan successfully");
-    }
-
+    send_planning_request(req, res);
+    
     if (prompt_before_exec_)
     {
         visual_tools_.prompt("Press 'next' in the RvizVisualToolsGui window to start the demo");
     }
+}
+
+void FrankaInterface::ptp_abs(std::vector<double> joint_space_goal, std::string end_effector_name, bool prompt)
+{
+    if (joint_space_goal.size() != 7)
+    {
+        ROS_ERROR_STREAM("Goal joint vector has wrong size. Expected 7, got " + std::to_string(joint_space_goal.size()));
+        throw std::invalid_argument("Goal joint vector has wrong size");
+    }
+    
+    // check if goal is within joint limits
+    for(int i = 0; i < 7; i++)
+    {
+        if(joint_space_goal[i] != std::clamp(joint_space_goal[i], joint_limits_[i].first, joint_limits_[i].second))
+        {
+            ROS_ERROR_STREAM("Goal position for joint " + std::to_string(i) + " is out of joint limits");
+            throw std::invalid_argument("Goal position for joint " + std::to_string(i) + " is out of joint limits");
+        }
+    }
+
+    // get current robot state
+    moveit::core::RobotState goal_state = planning_scene_monitor::LockedPlanningSceneRO(psm_)->getCurrentState();
+    
+    // set joint values
+    goal_state.setJointGroupPositions(goal_state.getRobotModel()->getJointModelGroup("panda_arm"), joint_space_goal);
+
+    // create joint goal
+    moveit_msgs::Constraints joint_goal = kinematic_constraints::constructGoalConstraints(goal_state, goal_state.getRobotModel()->getJointModelGroup("panda_arm"));
+    
+    // create a motion plan request
+    planning_interface::MotionPlanRequest req;
+    planning_interface::MotionPlanResponse res;
+    req.group_name = "panda_arm";
+    req.planner_id = "PTP";
+    req.pipeline_id = "pilz_industrial_motion_planner";
+    req.num_planning_attempts = 5;
+    req.allowed_planning_time = 5.0;
+    req.max_velocity_scaling_factor = velocity_scaling_factor_;
+    req.max_acceleration_scaling_factor = acceleration_scaling_factor_;
+    req.goal_constraints.push_back(joint_goal);
+
+    // send planning request
+    send_planning_request(req, res);
 }
 
 void FrankaInterface::ptp_abs(geometry_msgs::Pose pose, std::string frame_id, std::string end_effector_name, bool prompt)
@@ -211,22 +270,30 @@ void FrankaInterface::lin_rel(geometry_msgs::Pose rel_pose, std::string end_effe
 
 void FrankaInterface::set_tolerances(double tolerance_pos, double tolerance_angle)
 {
+    // TODO: check if tolerances are valid
+
     tolerance_pos_ = tolerance_pos;
     tolerance_angle_ = tolerance_angle;
 }
 
 void FrankaInterface::set_max_lin_velocity(double max_lin_velocity)
 {
+    // TODO: check if max_lin_velocity is valid
+
     max_lin_velocity_ = max_lin_velocity;
 }
 
 void FrankaInterface::set_velocity_scaling_factor(double velocity_scaling_factor)
 {
+    // TODO: check if velocity_scaling_factor is valid
+
     velocity_scaling_factor_ = velocity_scaling_factor;
 }
 
 void FrankaInterface::set_acceleration_scaling_factor(double acceleration_scaling_factor)
 {
+    // TODO: check if acceleration_scaling_factor is valid
+
     acceleration_scaling_factor_ = acceleration_scaling_factor;
 }
 
@@ -288,13 +355,14 @@ void FrankaInterface::close_gripper()
 
 void FrankaInterface::set_gripper_width(double width)
 {
+    // TODO: check if width is within limits
+
     franka_gripper::MoveGoal goal;
     goal.width = width;
     goal.speed = 0.1;
 
     gripper_move_action_client_.sendGoal(goal);
 
-    // wait for the action to return
     // wait for the action to return
     bool finished_before_timeout = gripper_move_action_client_.waitForResult(ros::Duration(30.0));
 
@@ -320,6 +388,9 @@ void FrankaInterface::set_gripper_width(double width)
 
 void FrankaInterface::grab_object(double width, double force)
 {
+    // TODO: check if width is within limits
+    // TODO: check if force is within limits
+
     franka_gripper::GraspGoal goal;
     goal.width = width;
     goal.force = 4;
@@ -368,6 +439,8 @@ inline void FrankaInterface::add_collision_object(moveit_msgs::CollisionObject c
 
 inline void FrankaInterface::remove_collision_object(std::string id)
 {
+    // TODO: check if object with id exists, otherwise throw error
+
     custom_collision_objects_.erase(std::remove_if(custom_collision_objects_.begin(), custom_collision_objects_.end(), [id](moveit_msgs::CollisionObject collision_object)
                                                    { return collision_object.id == id; }),
                                     custom_collision_objects_.end());

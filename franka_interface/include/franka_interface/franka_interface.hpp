@@ -48,6 +48,17 @@ public:
      * \param prompt if set to true, you'll have to press next in the rviz visualization tools gui to execute the plan
      */
     void ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
+    
+    /**
+     * \brief ptp motion to an absolute pose in joint space
+     * \param goal_joints absolute joint positions
+     * \param end_effector_name name of the end effector link
+     * \param prompt if set to true, you'll have to press next in the rviz visualization tools gui to execute the plan
+     * \throws std::invalid_argument if the number of joints in goal_joints is not equal to seven
+     * \throws std::invalid_argument if any of the joint positions is not within the joint limits
+     * \throws std::runtime_error if the planning fails
+     */
+    void ptp_abs(std::vector<double> goal_joints, std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
 
     /**
      * \brief ptp motion to an absolute pose
@@ -171,6 +182,8 @@ private:
     inline void activate_table_collision_check();
     inline void deactivate_table_collision_check();
 
+    inline void send_planning_request(planning_interface::MotionPlanRequest &request, planning_interface::MotionPlanResponse &response);
+
     ros::NodeHandle &nh_;
 
     tf2_ros::Buffer tf_buffer_;
@@ -197,6 +210,7 @@ private:
     double velocity_scaling_factor_;
     double acceleration_scaling_factor_;
     double max_lin_velocity_;
+    std::vector<std::pair<double, double>> joint_limits_;
 
     sensor_msgs::JointState current_joint_state_;
     planning_scene_monitor::PlanningSceneMonitorPtr psm_;
