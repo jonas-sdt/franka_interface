@@ -21,7 +21,7 @@
 		{
 			"label": "roslaunch sim",
 			"type": "shell",
-			"command": "source ../../devel/setup.bash && roslaunch franka_test_pkg sim.launch",
+			"command": "source ../../../devel/setup.bash && roslaunch franka_test_pkg sim.launch",
 			"problemMatcher": [],
 			"dependsOn": ["catkin build test pkg"],
 			"icon": {"color": "terminal.ansiGreen", "id": "run-all"},
