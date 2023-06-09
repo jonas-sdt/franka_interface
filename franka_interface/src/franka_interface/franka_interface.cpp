@@ -1,5 +1,6 @@
 #include "franka_interface/franka_interface.hpp"
 #include "moveit/kinematic_constraints/utils.h"
+#include "moveit/planning_scene_interface/planning_scene_interface.h"
 #include "moveit_msgs/GetCartesianPath.h"
 #include <vector>
 #include <algorithm>
@@ -20,7 +21,8 @@ FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_descript
       execute_trajectory_action_client_("execute_trajectory", true),
       gripper_action_client_("franka_gripper/grasp", true),
       gripper_move_action_client_("franka_gripper/move", true),
-      gripper_homing_action_client_("franka_gripper/homing", true)
+      gripper_homing_action_client_("franka_gripper/homing", true),
+      spinner_(1)
 {
     // initialize variables that depend on the robot model
     robot_model_loader::RobotModelLoaderPtr robot_model_loader(new robot_model_loader::RobotModelLoader("robot_description"));
@@ -51,6 +53,15 @@ FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_descript
         std::make_pair(-3.054326191, 3.054326191)
     };                                                      // joint limits saved as a pair of min and max values
 
+    spinner_.start();
+    mgi_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>("panda_arm");
+}
+
+FrankaInterface::~FrankaInterface()
+{
+    spinner_.stop();
+    visual_tools_.deleteAllMarkers();
+    deactivate_table_collision_check();
 }
 
 void FrankaInterface::send_planning_request(planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res)
@@ -93,27 +104,25 @@ void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string 
         visualize_point(goal_pose, "PTP Goal");
     }
 
-    // create a motion plan request
-    planning_interface::MotionPlanRequest req;
-    planning_interface::MotionPlanResponse res;
-    req.group_name = "panda_arm";
-    req.planner_id = "PTP";
-    req.pipeline_id = "pilz_industrial_motion_planner";
-    req.num_planning_attempts = 5;
-    req.allowed_planning_time = 5.0;
-    req.max_velocity_scaling_factor = velocity_scaling_factor_;
-    req.max_acceleration_scaling_factor = acceleration_scaling_factor_;
-    // req.start_state.joint_state = current_joint_state_;
+    const moveit::core::JointModelGroup* joint_model_group = mgi_->getCurrentState()->getJointModelGroup("panda_arm");
 
-    // add goal constraints
-    moveit_msgs::Constraints goal_constraints = kinematic_constraints::constructGoalConstraints(end_effector_name, goal_pose, tolerance_pos_, tolerance_angle_);      
-    req.goal_constraints.push_back(goal_constraints);
-
-    send_planning_request(req, res);
-    
-    if (prompt_before_exec_)
+    mgi_->setEndEffectorLink(end_effector_name);
+    mgi_->setPlanningTime(5.0);
+    mgi_->setMaxVelocityScalingFactor(velocity_scaling_factor_);
+    mgi_->setMaxAccelerationScalingFactor(acceleration_scaling_factor_);
+    mgi_->setPlannerId("PTP");
+    mgi_->setPoseTarget(goal_pose, end_effector_name);
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
+    if (mgi_->plan(plan) == moveit::core::MoveItErrorCode::SUCCESS)
     {
-        visual_tools_.prompt("Press 'next' in the RvizVisualToolsGui window to start the demo");
+        visual_tools_.publishTrajectoryLine(plan.trajectory_, joint_model_group);
+        visual_tools_.trigger();
+        mgi_->execute(plan);
+    }
+    else
+    {
+        ROS_ERROR_STREAM("Could not compute PTP plan successfully");
+        throw std::runtime_error("Could not compute PTP plan successfully");
     }
 }
 

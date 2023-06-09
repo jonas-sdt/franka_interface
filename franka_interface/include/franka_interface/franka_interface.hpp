@@ -13,6 +13,7 @@
 #include "moveit/planning_scene_monitor/planning_scene_monitor.h"
 #include "moveit/planning_scene_interface/planning_scene_interface.h"
 #include "moveit/planning_pipeline/planning_pipeline.h"
+#include "moveit/move_group_interface/move_group_interface.h"
 #include "moveit/robot_model_loader/robot_model_loader.h"
 #include <actionlib/client/simple_action_client.h>
 #include "moveit_visual_tools/moveit_visual_tools.h"
@@ -39,7 +40,7 @@ public:
      */
     FrankaInterface(ros::NodeHandle &nh, std::string robot_description = "robot_description");
 
-    ~FrankaInterface() = default;
+    ~FrankaInterface();
 
     /**
      * \brief ptp motion to an absolute pose
@@ -211,6 +212,8 @@ private:
     double acceleration_scaling_factor_;
     double max_lin_velocity_;
     std::vector<std::pair<double, double>> joint_limits_;
+    ros::AsyncSpinner spinner_;
+    moveit::planning_interface::MoveGroupInterfacePtr mgi_;
 
     sensor_msgs::JointState current_joint_state_;
     planning_scene_monitor::PlanningSceneMonitorPtr psm_;
