@@ -5,6 +5,9 @@
 #include <vector>
 #include <algorithm>
 
+namespace franka_interface
+{
+
 FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_description)
     : nh_(nh),
       tf_listener_(tf_buffer_),
@@ -21,8 +24,7 @@ FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_descript
       execute_trajectory_action_client_("execute_trajectory", true),
       gripper_action_client_("franka_gripper/grasp", true),
       gripper_move_action_client_("franka_gripper/move", true),
-      gripper_homing_action_client_("franka_gripper/homing", true),
-      spinner_(1)
+      gripper_homing_action_client_("franka_gripper/homing", true)
 {
     // initialize variables that depend on the robot model
     robot_model_loader::RobotModelLoaderPtr robot_model_loader(new robot_model_loader::RobotModelLoader("robot_description"));
@@ -30,7 +32,7 @@ FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_descript
     planning_pipeline_ = std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_loader->getModel(), nh, "planning_plugin", "request_adapters"),
 
     // initialize planning scene
-        init_planning_scene();
+    init_planning_scene();
 
     // initialize action clients
     cartesian_path_service_ =
@@ -43,6 +45,7 @@ FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_descript
     gripper_close_goal_.width = 0.0;
     gripper_close_goal_.speed = 0.1;
 
+    // joint limits saved as a pair of min and max values
     joint_limits_ = {
         std::make_pair(-2.897246558, 2.897246558), 
         std::make_pair(-1.832595715, 1.832595715),
@@ -51,15 +54,24 @@ FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_descript
         std::make_pair(-2.879793266, 2.879793266),
         std::make_pair(0.436332313, 4.625122518),
         std::make_pair(-3.054326191, 3.054326191)
-    };                                                      // joint limits saved as a pair of min and max values
+    };
 
-    spinner_.start();
-    mgi_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>("panda_arm");
+    // initialize move group interfaces
+    mgi_arm_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>("panda_arm");
+    mgi_arm_->setPlanningTime(5.0);
+    mgi_arm_->setPlannerId("PTP");
+    mgi_arm_->setMaxVelocityScalingFactor(velocity_scaling_factor_);
+    mgi_arm_->setMaxAccelerationScalingFactor(acceleration_scaling_factor_);
+
+    mgi_gripper_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>("panda_hand");
+    mgi_gripper_->setPlanningTime(3);
+    mgi_gripper_->setPlannerId("PTP");
+    mgi_gripper_->setMaxVelocityScalingFactor(0.1);
+    mgi_gripper_->setMaxAccelerationScalingFactor(0.1);
 }
 
 FrankaInterface::~FrankaInterface()
 {
-    spinner_.stop();
     visual_tools_.deleteAllMarkers();
     deactivate_table_collision_check();
 }
@@ -98,13 +110,7 @@ void FrankaInterface::send_planning_request(planning_interface::MotionPlanReques
 void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name, bool prompt)
 {
 
-    if (activate_visualizations_)
-    {
-        visual_tools_.deleteAllMarkers();
-        visualize_point(goal_pose, "PTP Goal");
-    }
-
-    const moveit::core::JointModelGroup* joint_model_group = mgi_->getCurrentState()->getJointModelGroup("panda_arm");
+    const moveit::core::JointModelGroup* joint_model_group = mgi_arm_->getCurrentState()->getJointModelGroup("panda_arm");
 
     // transform goal pose to panda_link0 frame
     geometry_msgs::PoseStamped goal_pose_transformed;
@@ -112,18 +118,27 @@ void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     goal_pose_transformed.pose = goal_pose.pose;
     tf_buffer_.transform(goal_pose_transformed, goal_pose_transformed, "panda_link0");
     
-    mgi_->setEndEffectorLink(end_effector_name);
-    mgi_->setPlanningTime(5.0);
-    mgi_->setMaxVelocityScalingFactor(velocity_scaling_factor_);
-    mgi_->setMaxAccelerationScalingFactor(acceleration_scaling_factor_);
-    mgi_->setPlannerId("PTP");
-    mgi_->setPoseTarget(goal_pose_transformed, end_effector_name);
+    mgi_arm_->setEndEffectorLink(end_effector_name);
+    mgi_arm_->setMaxVelocityScalingFactor(velocity_scaling_factor_);
+    mgi_arm_->setMaxAccelerationScalingFactor(acceleration_scaling_factor_);
+    mgi_arm_->setPoseTarget(goal_pose_transformed, end_effector_name);
     moveit::planning_interface::MoveGroupInterface::Plan plan;
-    if (mgi_->plan(plan) == moveit::core::MoveItErrorCode::SUCCESS)
+    if (mgi_arm_->plan(plan) == moveit::core::MoveItErrorCode::SUCCESS)
     {
-        visual_tools_.publishTrajectoryLine(plan.trajectory_, joint_model_group);
-        visual_tools_.trigger();
-        mgi_->execute(plan);
+        if (activate_visualizations_)
+        {
+            visual_tools_.deleteAllMarkers();
+            visualize_point(goal_pose, "PTP Goal");
+            visual_tools_.publishTrajectoryLine(plan.trajectory_, joint_model_group);
+            visual_tools_.trigger();
+        }
+
+        if (prompt_before_exec_ || prompt)
+        {
+            visual_tools_.prompt("Press 'next' in the RvizVisualToolsGui window to start execution of the lin motion");
+        }
+
+        mgi_arm_->execute(plan);
     }
     else
     {
@@ -188,7 +203,7 @@ void FrankaInterface::ptp_rel(geometry_msgs::Pose rel_pose, std::string end_effe
     geometry_msgs::PoseStamped goal_pose;
     goal_pose.pose = rel_pose;
     goal_pose.header.frame_id = "panda_hand_tcp";
-    ptp_abs(goal_pose, end_effector_name);
+    ptp_abs(goal_pose, end_effector_name, prompt);
 }
 
 void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name, bool prompt)
@@ -280,7 +295,7 @@ void FrankaInterface::lin_rel(geometry_msgs::Pose rel_pose, std::string end_effe
     geometry_msgs::PoseStamped goal_pose;
     goal_pose.pose = rel_pose;
     goal_pose.header.frame_id = end_effector_name;
-    lin_abs(goal_pose, end_effector_name);
+    lin_abs(goal_pose, end_effector_name, prompt);
 }
 
 void FrankaInterface::set_tolerances(double tolerance_pos, double tolerance_angle)
@@ -314,90 +329,47 @@ void FrankaInterface::set_acceleration_scaling_factor(double acceleration_scalin
 
 void FrankaInterface::open_gripper()
 {
-    gripper_move_action_client_.sendGoal(gripper_open_goal_);
+    moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
+    mgi_gripper_->setJointValueTarget(mgi_gripper_->getNamedTargetValues("open"));
 
-    // wait for the action to return
-    // wait for the action to return
-    bool finished_before_timeout = gripper_move_action_client_.waitForResult(ros::Duration(30.0));
-
-    if (finished_before_timeout)
-    {
-        actionlib::SimpleClientGoalState state = gripper_move_action_client_.getState();
-        ROS_INFO("Open Gripper action finished: %s", state.toString().c_str());
-    }
+    if (mgi_gripper_->plan(gripper_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
+        mgi_gripper_->move();
     else
     {
-        ROS_INFO("Open Gripper action did not finish before the time out.");
-        gripper_move_action_client_.cancelGoal();
-        throw std::runtime_error("Open Gripper action did not finish before the time out.");
-    }
-
-    // check if plan execution was successful
-    if (gripper_move_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
-    {
-        ROS_ERROR_STREAM("Could not open gripper successfully");
-        throw std::runtime_error("Could not open gripper successfully");
+        ROS_ERROR("Could not plan gripper motion");
+        throw std::runtime_error("Could not plan gripper motion");
     }
 }
 
 void FrankaInterface::close_gripper()
 {
-    gripper_move_action_client_.sendGoal(gripper_close_goal_);
+    moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
+    mgi_gripper_->setJointValueTarget(mgi_gripper_->getNamedTargetValues("close"));
 
-    // wait for the action to return
-    // wait for the action to return
-    bool finished_before_timeout = gripper_move_action_client_.waitForResult(ros::Duration(30.0));
-
-    if (finished_before_timeout)
-    {
-        actionlib::SimpleClientGoalState state = gripper_move_action_client_.getState();
-        ROS_INFO("Close Gripper action finished: %s", state.toString().c_str());
-    }
+    if (mgi_gripper_->plan(gripper_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
+        mgi_gripper_->move();
     else
     {
-        ROS_INFO("Close Gripper action did not finish before the time out.");
-        gripper_move_action_client_.cancelGoal();
-        throw std::runtime_error("Close Gripper action did not finish before the time out.");
-    }
-
-    // check if plan execution was successful
-    if (gripper_move_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
-    {
-        ROS_ERROR_STREAM("Could not close gripper successfully");
-        throw std::runtime_error("Could not close gripper successfully");
+        ROS_ERROR("Could not plan gripper motion");
+        throw std::runtime_error("Could not plan gripper motion");
     }
 }
 
 void FrankaInterface::set_gripper_width(double width)
 {
-    // TODO: check if width is within limits
+    std::vector<double> finger_width;
+    finger_width.resize(2);
+    finger_width[0] = width;
+    finger_width[1] = width;
+    moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
+    mgi_gripper_->setJointValueTarget(finger_width);
 
-    franka_gripper::MoveGoal goal;
-    goal.width = width;
-    goal.speed = 0.1;
-
-    gripper_move_action_client_.sendGoal(goal);
-
-    // wait for the action to return
-    bool finished_before_timeout = gripper_move_action_client_.waitForResult(ros::Duration(30.0));
-
-    if (finished_before_timeout)
-    {
-        actionlib::SimpleClientGoalState state = gripper_move_action_client_.getState();
-        ROS_INFO("Set gripper width action finished: %s", state.toString().c_str());
-    }
+    if (mgi_gripper_->plan(gripper_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
+        mgi_gripper_->move();
     else
     {
-        ROS_INFO("Set gripper width action did not finish before the time out.");
-        gripper_move_action_client_.cancelGoal();
-        throw std::runtime_error("Set gripper width action did not finish before the time out.");
-    }
-
-    // check if plan execution was successful
-    if (gripper_move_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
-    {
-        ROS_ERROR_STREAM("Could not set gripper width successfully");
-        throw std::runtime_error("Could not set gripper width successfully");
+        ROS_ERROR("Could not plan gripper motion");
+        throw std::runtime_error("Could not plan gripper motion");
     }
 }
 
@@ -583,3 +555,5 @@ void FrankaInterface::joint_state_callback(const sensor_msgs::JointState::ConstP
 {
     current_joint_state_ = *msg;
 }
+
+} // namespace franka_interface

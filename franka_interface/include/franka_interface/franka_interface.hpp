@@ -30,6 +30,12 @@
 #include <vector>
 #include <memory>
 
+namespace franka_interface
+{
+
+geometry_msgs::PoseStamped make_pose_stamped(float x, float y, float z, float qx, float qy, float qz, float qw, std::string frame_id);
+geometry_msgs::Pose make_pose(float x, float y, float z, float qx, float qy, float qz, float qw);
+
 class FrankaInterface
 {
 
@@ -52,6 +58,7 @@ public:
     
     /**
      * \brief ptp motion to an absolute pose in joint space
+     * \todo fix this function
      * \param goal_joints absolute joint positions
      * \param end_effector_name name of the end effector link
      * \param prompt if set to true, you'll have to press next in the rviz visualization tools gui to execute the plan
@@ -212,8 +219,8 @@ private:
     double acceleration_scaling_factor_;
     double max_lin_velocity_;
     std::vector<std::pair<double, double>> joint_limits_;
-    ros::AsyncSpinner spinner_;
-    moveit::planning_interface::MoveGroupInterfacePtr mgi_;
+    moveit::planning_interface::MoveGroupInterfacePtr mgi_arm_;
+    moveit::planning_interface::MoveGroupInterfacePtr mgi_gripper_;
 
     sensor_msgs::JointState current_joint_state_;
     planning_scene_monitor::PlanningSceneMonitorPtr psm_;
@@ -221,5 +228,7 @@ private:
     std::vector<moveit_msgs::CollisionObject> default_collision_objects_;
     std::vector<moveit_msgs::CollisionObject> custom_collision_objects_;
 };
+
+} // namespace franka_interface
 
 #endif

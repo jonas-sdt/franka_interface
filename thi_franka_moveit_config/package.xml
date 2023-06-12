@@ -6,6 +6,7 @@
      This package contains the MoveIt! configuration data for the Franka Emika Panda robot. It was derived from the official Franka Emika Panda MoveIt! configuration.
   </description>
   <author email="moveit_releasers@googlegroups.com">MoveIt maintainer team</author>
+  <maintainer email="jon-schmidt@outlook.de">Jonas Schmidt</maintainer>
 
   <license>BSD</license>
 
