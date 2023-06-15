@@ -15,13 +15,13 @@
 			"type": "shell",
 			"icon": {"color": "terminal.ansiBlue", "id": "wrench"},
 			"runOptions": {"instanceLimit": 1},
-			"command": "cd ${workspaceFolder} && catkin build franka_test_pkg --cmake-args -DCMAKE_BUILD_TYPE=Debug",
+			"command": "cd ${workspaceFolder} && catkin build franka_example_pkg --cmake-args -DCMAKE_BUILD_TYPE=Debug",
 			"problemMatcher": []
 		},
 		{
 			"label": "roslaunch sim",
 			"type": "shell",
-			"command": "source ../../../devel/setup.bash && roslaunch franka_test_pkg sim.launch",
+			"command": "source ../../../devel/setup.bash && roslaunch franka_interface sim.launch",
 			"problemMatcher": [],
 			"dependsOn": ["catkin build test pkg"],
 			"icon": {"color": "terminal.ansiGreen", "id": "run-all"},

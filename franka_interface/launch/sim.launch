@@ -1,7 +1,7 @@
 <launch>
 
     <!-- set parameters and custom transforms -->
-    <include file="$(find franka_test_pkg)/launch/frames.launch"/>
+    <include file="$(dirname)/frames.launch"/>
 
     <param name="/move_group/planning_plugin" value="pilz_industrial_motion_planner::CommandPlanner"/>
 
@@ -10,10 +10,5 @@
         <arg name="rviz_tutorial"        value="true"/>
         <arg name="pipeline"             value="pilz_industrial_motion_planner"/>
     </include>
-
-    <!-- start franka gripper
-    <include file="$(find franka_gripper)/launch/franka_gripper.launch" pass_all_args="true">
-        <arg name="robot_ip" value=""/>
-    </include> -->
 
 </launch>
