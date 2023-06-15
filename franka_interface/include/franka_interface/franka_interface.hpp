@@ -183,9 +183,9 @@ public:
      */
     std::vector<moveit_msgs::CollisionObject> get_collision_objects();
 
-    void joint_state_callback(const sensor_msgs::JointState::ConstPtr &msg);
 
 private:
+    void joint_state_callback(const sensor_msgs::JointState::ConstPtr &msg);
     inline void init_planning_scene();
     inline void activate_table_collision_check();
     inline void deactivate_table_collision_check();
