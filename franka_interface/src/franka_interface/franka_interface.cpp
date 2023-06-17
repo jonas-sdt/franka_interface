@@ -1,9 +1,4 @@
 #include "franka_interface/franka_interface.hpp"
-#include "moveit/kinematic_constraints/utils.h"
-#include "moveit/planning_scene_interface/planning_scene_interface.h"
-#include "moveit_msgs/GetCartesianPath.h"
-#include <vector>
-#include <algorithm>
 
 namespace franka_interface
 {
@@ -65,6 +60,7 @@ FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_descript
 
     mgi_gripper_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>("panda_hand");
     mgi_gripper_->setPlanningTime(3);
+    mgi_gripper_->setPlanningPipelineId("ompl");
     mgi_gripper_->setPlannerId("PTP");
     mgi_gripper_->setMaxVelocityScalingFactor(0.1);
     mgi_gripper_->setMaxAccelerationScalingFactor(0.1);

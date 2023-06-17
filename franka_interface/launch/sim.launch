@@ -11,4 +11,9 @@
         <arg name="pipeline"             value="pilz_industrial_motion_planner"/>
     </include>
 
+    <!-- launch ompl planning pipeline -->
+    <include file="$(find thi_franka_moveit_config)/launch/planning_pipeline.launch.xml" pass_all_args="true">
+        <arg name="pipeline" value="ompl"/>
+    </include>
+
 </launch>

@@ -3,9 +3,7 @@ Panels:
     Help Height: 84
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /MotionPlanning1
-        - /MotionPlanning1/Planning Metrics1
+      Expanded: ~
       Splitter Ratio: 0.4583333432674408
     Tree Height: 312
   - Class: rviz/Help
@@ -382,17 +380,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.75
       Focal Point:
-        X: 0.30635127425193787
-        Y: 0.27331456542015076
-        Z: 0.3248560428619385
+        X: 0.2408817559480667
+        Y: 0.32620882987976074
+        Z: 0.43762093782424927
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3850000202655792
+      Pitch: 0.39500004053115845
       Target Frame: panda_link0
-      Yaw: 5.886768817901611
+      Yaw: 0.2985837161540985
     Saved: ~
 Window Geometry:
   Displays:
