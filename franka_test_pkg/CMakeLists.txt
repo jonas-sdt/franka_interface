@@ -30,10 +30,14 @@ include_directories(
 
 add_executable(arm_example_node src/franka_arm_example_node.cpp)
 add_executable(gripper_example_node src/franka_gripper_example_node.cpp)
+add_executable(desk_height_test_node src/franka_desk_height_test.cpp)
 
 target_link_libraries(arm_example_node
   ${catkin_LIBRARIES}
 )
 target_link_libraries(gripper_example_node
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(desk_height_test_node
   ${catkin_LIBRARIES}
 )

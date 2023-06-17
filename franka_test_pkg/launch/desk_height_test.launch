@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="franka_example_pkg" type="desk_height_test_node" name="desk_height_test_node" output="screen" />
+</launch>
