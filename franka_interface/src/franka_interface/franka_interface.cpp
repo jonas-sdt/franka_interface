@@ -220,7 +220,7 @@ void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     cartesian_path_req.header.stamp = ros::Time::now();
     cartesian_path_req.waypoints.push_back(goal_pose.pose);
     cartesian_path_req.max_step = 0.01;
-    cartesian_path_req.jump_threshold = 0.0;
+    cartesian_path_req.jump_threshold = 5.0;
     cartesian_path_req.avoid_collisions = true;
     cartesian_path_req.cartesian_speed_limited_link = end_effector_name;
     cartesian_path_req.max_cartesian_speed = max_lin_velocity_;
@@ -240,6 +240,13 @@ void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     }
 
     trajectory = cartesian_path_res.solution;
+
+    // check if the goal can be reached by this plan
+    if (std::abs(cartesian_path_res.fraction-1) > 0.0001)
+    {
+        ROS_ERROR_STREAM("Could only complete " << cartesian_path_res.fraction << " \% of LIN path. Aborted. Goal Pose was: \n" << goal_pose);
+        throw std::runtime_error("Can't complete LIN motion.");
+    }
 
     if (prompt_before_exec_ || prompt)
     {
