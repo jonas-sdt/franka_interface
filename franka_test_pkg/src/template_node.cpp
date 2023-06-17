@@ -9,7 +9,8 @@ int main(int argc, char** argv)
     ros::AsyncSpinner spinner(4);
     spinner.start();
 
-    franka_interface::FrankaInterface robot(nh);
+    using namespace franka_interface;
+    FrankaInterface robot(nh);
 
     // Put code that should run once here
     

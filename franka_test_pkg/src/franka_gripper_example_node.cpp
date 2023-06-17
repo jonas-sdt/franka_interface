@@ -9,7 +9,8 @@ int main(int argc, char** argv)
     ros::AsyncSpinner spinner(4);
     spinner.start();
 
-    franka_interface::FrankaInterface robot(nh);
+    using namespace franka_interface;
+    FrankaInterface robot(nh);
 
     // Put code that should run once here
     
@@ -19,7 +20,7 @@ int main(int argc, char** argv)
         // Put code that should run repeatedly here
         robot.open_gripper();
         robot.close_gripper();
-        robot.set_gripper_width(0.05);
+        robot.set_gripper_width(5_cm);
         ros::Duration(1.0).sleep();
     }
     
