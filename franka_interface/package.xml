@@ -17,7 +17,6 @@
   <depend>franka_gripper</depend>
   <depend>geometry_msgs</depend>
   <depend>moveit_core</depend>
-  <depend>moveit_cpp</depend>
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>moveit_visual_tools</depend>

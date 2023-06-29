@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
   franka_gripper
   geometry_msgs
   moveit_core
-  moveit_cpp
   moveit_msgs
   moveit_ros_planning_interface
   moveit_visual_tools
@@ -38,7 +37,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES franka_interface
- CATKIN_DEPENDS franka_gripper geometry_msgs moveit_core moveit_cpp moveit_msgs moveit_ros_planning_interface moveit_visual_tools roscpp rviz_visual_tools tf2 tf2_ros
+ CATKIN_DEPENDS franka_gripper geometry_msgs moveit_core moveit_msgs moveit_ros_planning_interface moveit_visual_tools roscpp rviz_visual_tools tf2 tf2_ros
  DEPENDS
 )
 
