@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 
   ROS_INFO_STREAM("Moving to pose_right: " << pose_right);
   robot.set_max_lin_velocity(0.2);
-  robot.lin_rel(pose_left, "panda_hand_tcp", true);
+  robot.lin_rel_subdivided(pose_left, "panda_hand_tcp");
   ros::Duration(2).sleep();
 
   robot.set_max_lin_velocity(0.05);

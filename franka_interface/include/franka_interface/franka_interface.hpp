@@ -116,6 +116,8 @@ namespace franka_interface
          */
         void lin_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
 
+        void lin_abs_subdivided(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name = "panda_hand_tcp");
+
         /**
          * \brief Move the end effector of the robot in a straight line to an absolute pose in Cartesian space.
          *
@@ -142,6 +144,8 @@ namespace franka_interface
          * \throws std::runtime_error if the planning fails.
          */
         void lin_rel(geometry_msgs::Pose rel_pose, std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
+
+        void lin_rel_subdivided(geometry_msgs::Pose rel_pose, std::string end_effector_name = "panda_hand_tcp");
 
         /**
          * \brief Set the tolerances for MoveIt to use when planning a motion.
@@ -268,40 +272,35 @@ namespace franka_interface
         inline void send_planning_request(planning_interface::MotionPlanRequest &request, planning_interface::MotionPlanResponse &response);
 
         ros::NodeHandle &nh_;
-
-        tf2_ros::Buffer tf_buffer_;
-        tf2_ros::TransformListener tf_listener_;
-
+        
+        double acceleration_scaling_factor_;
         bool activate_visualizations_;
-        bool prompt_before_exec_;
-        moveit_visual_tools::MoveItVisualTools visual_tools_;
-
-        moveit::core::RobotModelPtr robot_model_;
-        planning_pipeline::PlanningPipelinePtr planning_pipeline_;
-        ros::Subscriber joint_state_subscriber_;
-        // actionlib::SimpleActionClient<moveit_msgs::MoveGroupGoal> move_action_client_;
         ros::ServiceClient cartesian_path_service_;
+        sensor_msgs::JointState current_joint_state_;
+        std::vector<moveit_msgs::CollisionObject> custom_collision_objects_;
+        std::vector<moveit_msgs::CollisionObject> default_collision_objects_;
         actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction> execute_trajectory_action_client_;
         actionlib::SimpleActionClient<franka_gripper::GraspAction> gripper_action_client_;
-        actionlib::SimpleActionClient<franka_gripper::MoveAction> gripper_move_action_client_;
-        actionlib::SimpleActionClient<franka_gripper::HomingAction> gripper_homing_action_client_;
-        franka_gripper::MoveGoal gripper_open_goal_;
         franka_gripper::MoveGoal gripper_close_goal_;
-
-        double tolerance_pos_;
-        double tolerance_angle_;
-        double velocity_scaling_factor_;
-        double acceleration_scaling_factor_;
-        double max_lin_velocity_;
+        actionlib::SimpleActionClient<franka_gripper::HomingAction> gripper_homing_action_client_;
+        actionlib::SimpleActionClient<franka_gripper::MoveAction> gripper_move_action_client_;
+        franka_gripper::MoveGoal gripper_open_goal_;
         std::vector<std::pair<double, double>> joint_limits_;
+        ros::Subscriber joint_state_subscriber_;
+        double max_lin_velocity_;
         moveit::planning_interface::MoveGroupInterfacePtr mgi_arm_;
         moveit::planning_interface::MoveGroupInterfacePtr mgi_gripper_;
-
-        sensor_msgs::JointState current_joint_state_;
-        planning_scene_monitor::PlanningSceneMonitorPtr psm_;
+        planning_pipeline::PlanningPipelinePtr planning_pipeline_;
         moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
-        std::vector<moveit_msgs::CollisionObject> default_collision_objects_;
-        std::vector<moveit_msgs::CollisionObject> custom_collision_objects_;
+        bool prompt_before_exec_;
+        planning_scene_monitor::PlanningSceneMonitorPtr psm_;
+        moveit::core::RobotModelPtr robot_model_;
+        tf2_ros::Buffer tf_buffer_;
+        tf2_ros::TransformListener tf_listener_;
+        double tolerance_angle_;
+        double tolerance_pos_;
+        double velocity_scaling_factor_;
+        moveit_visual_tools::MoveItVisualTools visual_tools_;
     };
 
 } // namespace franka_interface

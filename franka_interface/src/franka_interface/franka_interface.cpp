@@ -5,21 +5,22 @@ namespace franka_interface
 
 FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_description)
     : nh_(nh),
-      tf_listener_(tf_buffer_),
-      activate_visualizations_(true),
-      prompt_before_exec_(false),
-      visual_tools_("panda_link0"),
-      joint_state_subscriber_(nh_.subscribe("/joint_states", 1, &FrankaInterface::joint_state_callback, this)),
-      tolerance_pos_(0.001),
-      tolerance_angle_(0.01),
-      max_lin_velocity_(0.1),
-      velocity_scaling_factor_(0.1),
       acceleration_scaling_factor_(0.1),
-      planning_scene_interface_(),
+      activate_visualizations_(true),
+      cartesian_path_service_(nh_.serviceClient<moveit_msgs::GetCartesianPath>("/compute_cartesian_path")),
       execute_trajectory_action_client_("execute_trajectory", true),
       gripper_action_client_("franka_gripper/grasp", true),
+      gripper_homing_action_client_("franka_gripper/homing", true),
       gripper_move_action_client_("franka_gripper/move", true),
-      gripper_homing_action_client_("franka_gripper/homing", true)
+      joint_state_subscriber_(nh_.subscribe("/joint_states", 1, &FrankaInterface::joint_state_callback, this)),
+      max_lin_velocity_(0.1),
+      planning_scene_interface_(),
+      prompt_before_exec_(false),
+      tf_listener_(tf_buffer_),
+      tolerance_angle_(0.01),
+      tolerance_pos_(0.001),
+      velocity_scaling_factor_(0.1),
+      visual_tools_("panda_link0")
 {
     // initialize variables that depend on the robot model
     robot_model_loader::RobotModelLoaderPtr robot_model_loader(new robot_model_loader::RobotModelLoader("robot_description"));
@@ -28,10 +29,6 @@ FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_descript
 
     // initialize planning scene
     init_planning_scene();
-
-    // initialize action clients
-    cartesian_path_service_ =
-        nh_.serviceClient<moveit_msgs::GetCartesianPath>("/compute_cartesian_path");
 
     // gripper positions
     gripper_open_goal_.width = 0.08;
@@ -285,6 +282,38 @@ void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     execute_trajectory_action_client_.cancelGoal();
 }
 
+void FrankaInterface::lin_abs_subdivided(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name)
+{
+    int lin_devider = 1;
+    int todo_movements = 1;
+    while(todo_movements > 0)
+    {
+        try {
+            lin_abs(goal_pose, "panda_hand_tcp", true);
+            ros::Duration(1).sleep();
+            todo_movements--;
+        }
+        catch (const std::runtime_error& e) {
+            goal_pose.pose.position.x = goal_pose.pose.position.x / 2;
+            goal_pose.pose.position.y = goal_pose.pose.position.y / 2;
+            goal_pose.pose.position.z = goal_pose.pose.position.z / 2;
+            // halve the rotation as well
+            tf2::Quaternion q;
+            tf2::fromMsg(goal_pose.pose.orientation, q);
+            q = q.slerp(tf2::Quaternion::getIdentity(), 0.5);
+            goal_pose.pose.orientation = tf2::toMsg(q);
+
+            lin_devider++;
+            todo_movements *= 2;
+        }
+        if (lin_devider > 10)
+        {
+            ROS_ERROR_STREAM("Could not complete LIN motion. Aborted. Goal Pose was: \n" << goal_pose);
+            throw std::runtime_error("Could not complete LIN motion.");
+        }
+    }
+}
+
 void FrankaInterface::lin_abs(geometry_msgs::Pose pose, std::string frame_id, std::string end_effector_name, bool prompt)
 {
     geometry_msgs::PoseStamped goal_pose;
@@ -301,6 +330,39 @@ void FrankaInterface::lin_rel(geometry_msgs::Pose rel_pose, std::string end_effe
     lin_abs(goal_pose, end_effector_name, prompt);
 }
 
+void FrankaInterface::lin_rel_subdivided(geometry_msgs::Pose rel_pose, std::string end_effector_name)
+{
+    int lin_devider = 1;
+    int todo_movements = 1;
+    while(todo_movements > 0)
+    {
+        try {
+            lin_rel(rel_pose, "panda_hand_tcp", true);
+            ros::Duration(1).sleep();
+            todo_movements--;
+        }
+        catch (const std::runtime_error& e) {
+            rel_pose.position.x = rel_pose.position.x / 2;
+            rel_pose.position.y = rel_pose.position.y / 2;
+            rel_pose.position.z = rel_pose.position.z / 2;
+
+            // halve the rotation as well
+            tf2::Quaternion q;
+            tf2::fromMsg(rel_pose.orientation, q);
+            q = q.slerp(tf2::Quaternion::getIdentity(), 0.5);
+            rel_pose.orientation = tf2::toMsg(q);
+
+            lin_devider++;
+            todo_movements *= 2;
+        }
+        if (lin_devider > 10)
+        {
+            ROS_ERROR_STREAM("Could not complete LIN motion. Aborted. Goal Pose was: \n" << rel_pose);
+            throw std::runtime_error("Could not complete LIN motion.");
+        }
+    }
+}
+
 void FrankaInterface::set_tolerances(double tolerance_pos, double tolerance_angle)
 {
     // TODO: check if tolerances are valid
@@ -311,15 +373,15 @@ void FrankaInterface::set_tolerances(double tolerance_pos, double tolerance_angl
 
 void FrankaInterface::set_max_lin_velocity(double max_lin_velocity)
 {
-    // TODO: check if max_lin_velocity is valid
-
+    if (max_lin_velocity < 0.01 || max_lin_velocity > 2)
+        throw std::invalid_argument("max_lin_velocity must be between 0.01 and 2");
     max_lin_velocity_ = max_lin_velocity;
 }
 
 void FrankaInterface::set_velocity_scaling_factor(double velocity_scaling_factor)
 {
-    // TODO: check if velocity_scaling_factor is valid
-
+    if (velocity_scaling_factor < 0.01 || velocity_scaling_factor > 1)
+        throw std::invalid_argument("velocity_scaling_factor must be between 0.01 and 1");
     velocity_scaling_factor_ = velocity_scaling_factor;
 }
 
