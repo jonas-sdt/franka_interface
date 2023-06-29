@@ -91,7 +91,7 @@ namespace franka_interface
      * \brief create a string from a pose stamped message
      * \param pose_stamped pose stamped message
      */
-    std::string pose_stamped_to_string(geometry_msgs::PoseStamped pose_stamped)
+    std::string pose_stamped_to_string(const geometry_msgs::PoseStamped & pose_stamped)
     {
         std::string str = "PoseStamped: ";
         str += "frame_id: " + pose_stamped.header.frame_id + ", \n";
@@ -104,7 +104,7 @@ namespace franka_interface
      * \brief create a string from a pose message
      * \param pose pose message
      */
-    std::string pose_to_string(geometry_msgs::Pose pose)
+    std::string pose_to_string(const geometry_msgs::Pose & pose)
     {
         std::string str = "Pose: ";
         str += "position: (" + std::to_string(pose.position.x) + ", " + std::to_string(pose.position.y) + ", " + std::to_string(pose.position.z) + "), \n";
