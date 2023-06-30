@@ -8,7 +8,9 @@ namespace franka_interface {
 
   const char * PlanningFailed::what() const noexcept
   {
-    return "PTP planning failed because of %s.", moveit::core::MoveItErrorCode::toString(error_code_);
+    std::ostringstream oss;
+    oss << "PTP planning failed because of " << moveit::core::MoveItErrorCode::toString(error_code_);
+    return oss.str().c_str();
   }
   
   LinPlanningFailedIncomplete::LinPlanningFailedIncomplete(geometry_msgs::PoseStamped pose, double percentage)
