@@ -69,31 +69,6 @@ FrankaInterface::~FrankaInterface()
     deactivate_table_collision_check();
 }
 
-void FrankaInterface::send_planning_request(planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res)
-{
-    // get current planning scene from planning scene monitor
-    if (!psm_->requestPlanningSceneState("/get_planning_scene"))
-    {
-        ROS_ERROR_STREAM("Could not get planning scene");
-        throw std::runtime_error("Could not get planning scene");
-    }
-
-    assert(planning_pipeline_);
-    assert(psm_);
-
-    planning_scene_monitor::LockedPlanningSceneRO planning_scene(psm_);
-
-    // compute plan
-    planning_pipeline_->generatePlan(planning_scene, req, res);
-
-    // check if planning was successful
-    if (res.error_code_.val != res.error_code_.SUCCESS)
-    {
-        ROS_ERROR_STREAM("Could not compute PTP plan successfully. Error Code: " + std::to_string(res.error_code.val));
-        throw PlanningFailed(res.error_code_);
-    }
-}
-
 void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name, bool prompt)
 {
 
@@ -137,45 +112,39 @@ void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string 
 
 void FrankaInterface::ptp_abs(std::vector<double> joint_space_goal, std::string end_effector_name, bool prompt)
 {
-    if (joint_space_goal.size() != 7)
+    moveit::core::RobotStatePtr current_state = mgi_arm_->getCurrentState();
+    const moveit::core::JointModelGroup* joint_model_group =
+        mgi_arm_->getCurrentState()->getJointModelGroup("panda_arm");
+
+    std::vector<double> joint_group_positions;
+    current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
+
+    // joint_group_positions[0] = -tau / 6;  // -1/6 turn in radians
+    
+    mgi_arm_->setJointValueTarget(joint_space_goal);
+
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
+    moveit::core::MoveItErrorCode error_code = mgi_arm_->plan(plan);
+    
+    if (error_code != moveit::core::MoveItErrorCode::SUCCESS)
     {
-        ROS_ERROR_STREAM("Goal joint vector has wrong size. Expected 7, got " + std::to_string(joint_space_goal.size()));
-        throw std::invalid_argument("Goal joint vector has wrong size");
+        ROS_ERROR_STREAM("Could not compute PTP plan successfully");
+        throw PlanningFailed(error_code);
     }
-    
-    // check if goal is within joint limits
-    for(int i = 0; i < 7; i++)
+
+    if (activate_visualizations_)
     {
-        if(joint_space_goal[i] != std::clamp(joint_space_goal[i], joint_limits_[i].first, joint_limits_[i].second))
-        {
-            ROS_ERROR_STREAM("Goal position for joint " + std::to_string(i) + " is out of joint limits");
-            throw std::invalid_argument("Goal position for joint " + std::to_string(i) + " is out of joint limits");
-        }
+        visual_tools_.deleteAllMarkers();
+        visual_tools_.publishTrajectoryLine(plan.trajectory_, joint_model_group);
+        visual_tools_.trigger();
     }
 
-    // get current robot state
-    moveit::core::RobotState goal_state = planning_scene_monitor::LockedPlanningSceneRO(psm_)->getCurrentState();
-    
-    // set joint values
-    goal_state.setJointGroupPositions(goal_state.getRobotModel()->getJointModelGroup("panda_arm"), joint_space_goal);
+    if (prompt_before_exec_ || prompt)
+    {
+        visual_tools_.prompt("Press 'next' in the RvizVisualToolsGui window to start execution of the ptp motion");
+    }
 
-    // create joint goal
-    moveit_msgs::Constraints joint_goal = kinematic_constraints::constructGoalConstraints(goal_state, goal_state.getRobotModel()->getJointModelGroup("panda_arm"));
-    
-    // create a motion plan request
-    planning_interface::MotionPlanRequest req;
-    planning_interface::MotionPlanResponse res;
-    req.group_name = "panda_arm";
-    req.planner_id = "PTP";
-    req.pipeline_id = "pilz_industrial_motion_planner";
-    req.num_planning_attempts = 5;
-    req.allowed_planning_time = 5.0;
-    req.max_velocity_scaling_factor = velocity_scaling_factor_;
-    req.max_acceleration_scaling_factor = acceleration_scaling_factor_;
-    req.goal_constraints.push_back(joint_goal);
-
-    // send planning request
-    send_planning_request(req, res);
+    mgi_arm_->execute(plan);
 }
 
 void FrankaInterface::ptp_abs(geometry_msgs::Pose pose, std::string frame_id, std::string end_effector_name, bool prompt)

@@ -25,6 +25,11 @@ int main(int argc, char** argv)
   robot.set_acceleration_scaling_factor(0.5);
   robot.ptp_abs(pose_home);
 
+  auto joint_space_goal = make_joint_state_goal(0_deg, 0_deg, 0_deg, -90_deg, 0_deg, 90_deg, 0_deg);
+
+  robot.ptp_abs(joint_space_goal, "panda_hand_tcp", true);
+
+
   ROS_INFO_STREAM("Moving to pose_right: " << pose_right);
   robot.set_max_lin_velocity(0.2);
   // this will fail -> continiuing with subdivided lin_rel

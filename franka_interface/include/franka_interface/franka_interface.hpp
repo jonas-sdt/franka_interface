@@ -311,8 +311,6 @@ namespace franka_interface
         inline void activate_table_collision_check();
         inline void deactivate_table_collision_check();
 
-        inline void send_planning_request(planning_interface::MotionPlanRequest &request, planning_interface::MotionPlanResponse &response);
-
         ros::NodeHandle &nh_;
         
         double acceleration_scaling_factor_;
