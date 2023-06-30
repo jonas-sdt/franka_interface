@@ -1,3 +1,6 @@
+#ifndef FRANKA_INTERFACE_UTILS_HPP
+#define FRANKA_INTERFACE_UTILS_HPP
+
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/Pose.h"
 #include "tf2/LinearMath/Quaternion.h"
@@ -175,3 +178,5 @@ namespace franka_interface
     }
 
 } // namespace franka_interface
+
+#endif // FRANKA_INTERFACE_UTILS_HPP

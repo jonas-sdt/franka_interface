@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include "franka_interface/franka_interface.hpp"
 #include "franka_interface/utils.hpp"
+#include "franka_interface/exceptions.hpp"
 #include "geometry_msgs/PoseStamped.h"
 #include <random>
 
@@ -26,7 +27,17 @@ int main(int argc, char** argv)
 
   ROS_INFO_STREAM("Moving to pose_right: " << pose_right);
   robot.set_max_lin_velocity(0.2);
-  robot.lin_rel_subdivided(pose_left, "panda_hand_tcp");
+  // this will fail -> continiuing with subdivided lin_rel
+  try
+  {
+    robot.lin_rel(pose_left, "panda_hand_tcp");
+  }
+  catch(LinPlanningFailedIncomplete & e)
+  {
+    ROS_WARN_STREAM("LinPlanningFailedIncomplete: " << e.what());
+    ROS_WARN_STREAM("Trying subdivided lin_rel");
+    robot.lin_rel_subdivided(pose_left, "panda_hand_tcp");
+  }
   ros::Duration(2).sleep();
 
   robot.set_max_lin_velocity(0.05);

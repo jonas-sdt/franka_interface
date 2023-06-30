@@ -36,7 +36,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES franka_interface
+ LIBRARIES franka_interface franka_interface_exceptions
  CATKIN_DEPENDS franka_gripper geometry_msgs moveit_core moveit_msgs moveit_ros_planning_interface moveit_visual_tools roscpp rviz_visual_tools tf2 tf2_ros
  DEPENDS
 )
@@ -57,6 +57,10 @@ add_library(${PROJECT_NAME}
   src/${PROJECT_NAME}/franka_interface.cpp
 )
 
+add_library(${PROJECT_NAME}_exceptions
+  src/${PROJECT_NAME}/exceptions.cpp
+)
+
 # Add cmake target dependencies of the library
 # as an example, code may need to be generated before libraries
 # either from message generation or dynamic reconfigure
@@ -64,6 +68,10 @@ add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 
 # Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(${PROJECT_NAME}_exceptions
   ${catkin_LIBRARIES}
 )
 

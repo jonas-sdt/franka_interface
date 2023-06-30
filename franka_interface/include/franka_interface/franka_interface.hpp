@@ -2,6 +2,7 @@
 #define FRANKA_INTERFACE_H
 
 #include "actionlib/client/simple_action_client.h"
+#include "franka_interface/exceptions.hpp"
 #include "franka_gripper/GraspAction.h"
 #include "franka_gripper/HomingAction.h"
 #include "franka_gripper/MoveAction.h"
@@ -30,7 +31,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <vector>
+#include <cassert>
 
 namespace franka_interface
 {
@@ -58,6 +59,8 @@ namespace franka_interface
          * \param goal_pose The absolute pose to move the end effector to.
          * \param end_effector_name The name of the end effector link. Default is "panda_hand_tcp".
          * \param prompt If set to true, the user will have to press "Next" in the RViz visualization tools GUI to execute the plan.
+         * 
+         * \throws franka_interface::PlanningFailed if the planning fails.
          */
         void ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
 
@@ -72,7 +75,8 @@ namespace franka_interface
          *
          * \throws std::invalid_argument if the number of joints in goal_joints is not equal to seven.
          * \throws std::invalid_argument if any of the joint positions is not within the joint limits.
-         * \throws std::runtime_error if the planning fails.
+         * \throws franka_interface::PlanningFailed if the planning fails.
+         * \throws std::runtime_error if there was a communication error with ROS
          */
         void ptp_abs(std::vector<double> goal_joints, std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
 
@@ -86,7 +90,7 @@ namespace franka_interface
          * \param end_effector_name The name of the end effector link. Default is "panda_hand_tcp".
          * \param prompt If set to true, the user will have to press "Next" in the RViz visualization tools GUI to execute the plan.
          *
-         * \throws std::runtime_error if the planning fails.
+         * \throws franka_interface::PlanningFailed if the planning fails.
          */
         void ptp_abs(geometry_msgs::Pose pose, std::string frame_id = "panda_link0", std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
 
@@ -99,7 +103,7 @@ namespace franka_interface
          * \param end_effector_name The name of the end effector link. Default is "panda_hand_tcp".
          * \param prompt If set to true, the user will have to press "Next" in the RViz visualization tools GUI to execute the plan.
          *
-         * \throws std::runtime_error if the planning fails.
+         * \throws franka_interface::PlanningFailed if the planning fails.
          */
         void ptp_rel(geometry_msgs::Pose rel_pose, std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
 
@@ -112,10 +116,27 @@ namespace franka_interface
          * \param end_effector_name The name of the end effector link. Default is "panda_hand_tcp".
          * \param prompt If set to true, the user will have to press "Next" in the RViz visualization tools GUI to execute the plan.
          *
-         * \throws std::runtime_error if the planning fails.
+         * \throws std::runtime_error if there was a communication error with ROS
+         * \throws franka_interface::PlanningFailed if the planning fails.
+         * \throws franka_interface::LinPlanningFailedIncomplete if the planning failed to cover the whole path. In this case try subdividing the path with lin_abs_subdivided().
+         * \throws franka_interface::ExecutionFailed if the execution fails.
          */
         void lin_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
 
+        /**
+         * \brief Move the end effector of the robot in a straight line to an absolute pose in Cartesian space. 
+         * 
+         * This function subdivides the path (multiple times if necessary) if the planning fails to cover the whole path.
+         * 
+         * \param goal_pose The absolute pose to move the end effector to.
+         * \param end_effector_name The name of the end effector link. Default is "panda_hand_tcp".
+         * \param prompt If set to true, the user will have to press "Next" in the RViz visualization tools GUI to execute the plan.
+         * 
+         * \throws std::runtime_error if there was a communication error with ROS
+         * \throws franka_interface::PlanningFailed if the planning fails.
+         * \throws franka_interface::LinPlanningFailedIncomplete if the planning failed to cover the whole path. In this case try subdividing the path with lin_abs_subdivided().
+         * \throws franka_interface::ExecutionFailed if the execution fails.
+        */
         void lin_abs_subdivided(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name = "panda_hand_tcp");
 
         /**
@@ -128,7 +149,10 @@ namespace franka_interface
          * \param end_effector_name The name of the end effector link. Default is "panda_hand_tcp".
          * \param prompt If set to true, the user will have to press "Next" in the RViz visualization tools GUI to execute the plan.
          *
-         * \throws std::runtime_error if the planning fails.
+         * \throws std::runtime_error if there was a communication error with ROS
+         * \throws franka_interface::PlanningFailed if the planning fails.
+         * \throws franka_interface::LinPlanningFailedIncomplete if the planning failed to cover the whole path. In this case try subdividing the path with lin_abs_subdivided().
+         * \throws franka_interface::ExecutionFailed if the execution fails.
          */
         void lin_abs(geometry_msgs::Pose pose, std::string frame_id = "panda_link0", std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
 
@@ -141,10 +165,28 @@ namespace franka_interface
          * \param end_effector_name The name of the end effector link. Default is "panda_hand_tcp".
          * \param prompt If set to true, the user will have to press "Next" in the RViz visualization tools GUI to execute the plan.
          *
-         * \throws std::runtime_error if the planning fails.
+         * \throws std::runtime_error if there was a communication error with ROS
+         * \throws franka_interface::PlanningFailed if the planning fails.
+         * \throws franka_interface::LinPlanningFailedIncomplete if the planning failed to cover the whole path. In this case try subdividing the path with lin_abs_subdivided().
+         * \throws franka_interface::ExecutionFailed if the execution fails.
          */
         void lin_rel(geometry_msgs::Pose rel_pose, std::string end_effector_name = "panda_hand_tcp", bool prompt = false);
 
+
+        /**
+         * \brief Move the end effector of the robot in a straight line to a pose relative to the current pose in Cartesian space.
+         * 
+         * This function subdivides the path (multiple times if necessary) if the planning fails to cover the whole path.
+         * 
+         * \param rel_pose The pose relative to the current pose to move the end effector to.
+         * \param end_effector_name The name of the end effector link. Default is "panda_hand_tcp".
+         * \param prompt If set to true, the user will have to press "Next" in the RViz visualization tools GUI to execute the plan.
+         * 
+         * \throws std::runtime_error if there was a communication error with ROS
+         * \throws franka_interface::PlanningFailed if the planning fails.
+         * \throws franka_interface::LinPlanningFailedIncomplete if the planning failed to cover the whole path. In this case try subdividing the path with lin_abs_subdivided().
+         * \throws franka_interface::ExecutionFailed if the execution fails.
+        */
         void lin_rel_subdivided(geometry_msgs::Pose rel_pose, std::string end_effector_name = "panda_hand_tcp");
 
         /**
@@ -186,7 +228,7 @@ namespace franka_interface
          *
          * This function sends a command to the gripper to open completely. The gripper will remain open until a new command is sent to it.
          *
-         * \throws std::runtime_error if the command fails.
+         * \throws franka_interface::PlanningFailed if the planning fails.
          */
         void open_gripper();
 
@@ -195,7 +237,7 @@ namespace franka_interface
          *
          * This function sends a command to the gripper to close completely. The gripper will remain closed until a new command is sent to it. Note that this function is not suitable for grasping objects! Use the `grab_object` function instead.
          *
-         * \throws std::runtime_error if the command fails.
+         * \throws franka_interface::PlanningFailed if the planning fails.
          */
         void close_gripper();
 
@@ -206,7 +248,7 @@ namespace franka_interface
          *
          * \param width The desired width of the gripper in meters.
          *
-         * \throws std::runtime_error if the command fails.
+         * \throws franka_interface::PlanningFailed if the planning fails.
          */
         void set_gripper_width(double width);
 
@@ -218,7 +260,7 @@ namespace franka_interface
          * \param width The desired width of the gripper in meters.
          * \param force The desired grasping force in Newtons.
          *
-         * \throws std::runtime_error if the command fails.
+         * \throws ExecutionFailed if the execution fails.
          */
         void grab_object(double width, double force);
 

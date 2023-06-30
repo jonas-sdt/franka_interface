@@ -78,25 +78,19 @@ void FrankaInterface::send_planning_request(planning_interface::MotionPlanReques
         throw std::runtime_error("Could not get planning scene");
     }
 
-    if (planning_pipeline_ && psm_)
-    {
-        planning_scene_monitor::LockedPlanningSceneRO planning_scene(psm_);
+    assert(planning_pipeline_);
+    assert(psm_);
 
-        // compute plan
-        planning_pipeline_->generatePlan(planning_scene, req, res);
+    planning_scene_monitor::LockedPlanningSceneRO planning_scene(psm_);
 
-        // check if planning was successful
-        if (res.error_code_.val != res.error_code_.SUCCESS)
-        {
-            ROS_ERROR_STREAM("Could not compute PTP plan successfully. Error Code: " + std::to_string(res.error_code.val));
-            throw std::runtime_error("Could not compute PTP plan successfully");
-        }
-    }
-    else
+    // compute plan
+    planning_pipeline_->generatePlan(planning_scene, req, res);
+
+    // check if planning was successful
+    if (res.error_code_.val != res.error_code_.SUCCESS)
     {
-        // handle null pointers
-        ROS_ERROR("Planning pipeline or planning scene monitor is null");
-        throw std::runtime_error("Planning pipeline or planning scene monitor is null");
+        ROS_ERROR_STREAM("Could not compute PTP plan successfully. Error Code: " + std::to_string(res.error_code.val));
+        throw PlanningFailed(res.error_code_);
     }
 }
 
@@ -116,7 +110,8 @@ void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     mgi_arm_->setMaxAccelerationScalingFactor(acceleration_scaling_factor_);
     mgi_arm_->setPoseTarget(goal_pose_transformed, end_effector_name);
     moveit::planning_interface::MoveGroupInterface::Plan plan;
-    if (mgi_arm_->plan(plan) == moveit::core::MoveItErrorCode::SUCCESS)
+    moveit::core::MoveItErrorCode error_code = mgi_arm_->plan(plan);
+    if (error_code == moveit::core::MoveItErrorCode::SUCCESS)
     {
         if (activate_visualizations_)
         {
@@ -136,7 +131,7 @@ void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     else
     {
         ROS_ERROR_STREAM("Could not compute PTP plan successfully");
-        throw std::runtime_error("Could not compute PTP plan successfully");
+        throw PlanningFailed(error_code);
     }
 }
 
@@ -227,7 +222,7 @@ void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string 
         if (cartesian_path_res.error_code.val != moveit_msgs::MoveItErrorCodes::SUCCESS)
         {
             ROS_ERROR("Could not compute cartesian path");
-            throw std::runtime_error("Could not compute cartesian path");
+            throw PlanningFailed(cartesian_path_res.error_code);
         }
     }
     else
@@ -241,8 +236,8 @@ void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     // check if the goal can be reached by this plan
     if (std::abs(cartesian_path_res.fraction-1) > 0.0001)
     {
-        ROS_ERROR_STREAM("Could only complete " << cartesian_path_res.fraction << " \% of LIN path. Aborted. Goal Pose was: \n" << goal_pose);
-        throw std::runtime_error("Can't complete LIN motion.");
+        ROS_ERROR_STREAM("Can only plan " << cartesian_path_res.fraction << " \% of LIN path. Aborted. Goal Pose was: \n" << goal_pose);
+        throw LinPlanningFailedIncomplete(goal_pose, cartesian_path_res.fraction);
     }
 
     if (prompt_before_exec_ || prompt)
@@ -268,13 +263,14 @@ void FrankaInterface::lin_abs(geometry_msgs::PoseStamped goal_pose, std::string 
     {
         ROS_INFO("Trajectory execution action did not finish before the time out.");
         execute_trajectory_action_client_.cancelGoal();
-        throw std::runtime_error("Trajectory execution action did not finish before the time out.");
+        throw ExecutionFailed("Trajectory execution action did not finish before the time out.");
     }
 
     // check if plan execution was successful
     if (execute_trajectory_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
     {
         ROS_ERROR_STREAM("Could not execute trajectory successfully");
+        throw ExecutionFailed("Could not execute trajectory successfully");
         return;
     }
 
@@ -293,7 +289,7 @@ void FrankaInterface::lin_abs_subdivided(geometry_msgs::PoseStamped goal_pose, s
             ros::Duration(1).sleep();
             todo_movements--;
         }
-        catch (const std::runtime_error& e) {
+        catch (const LinPlanningFailedIncomplete& e) {
             goal_pose.pose.position.x = goal_pose.pose.position.x / 2;
             goal_pose.pose.position.y = goal_pose.pose.position.y / 2;
             goal_pose.pose.position.z = goal_pose.pose.position.z / 2;
@@ -309,7 +305,7 @@ void FrankaInterface::lin_abs_subdivided(geometry_msgs::PoseStamped goal_pose, s
         if (lin_devider > 10)
         {
             ROS_ERROR_STREAM("Could not complete LIN motion. Aborted. Goal Pose was: \n" << goal_pose);
-            throw std::runtime_error("Could not complete LIN motion.");
+            throw ExecutionFailed("Could not complete LIN motion.");
         }
     }
 }
@@ -341,7 +337,7 @@ void FrankaInterface::lin_rel_subdivided(geometry_msgs::Pose rel_pose, std::stri
             ros::Duration(1).sleep();
             todo_movements--;
         }
-        catch (const std::runtime_error& e) {
+        catch (const LinPlanningFailedIncomplete& e) {
             rel_pose.position.x = rel_pose.position.x / 2;
             rel_pose.position.y = rel_pose.position.y / 2;
             rel_pose.position.z = rel_pose.position.z / 2;
@@ -358,7 +354,7 @@ void FrankaInterface::lin_rel_subdivided(geometry_msgs::Pose rel_pose, std::stri
         if (lin_devider > 10)
         {
             ROS_ERROR_STREAM("Could not complete LIN motion. Aborted. Goal Pose was: \n" << rel_pose);
-            throw std::runtime_error("Could not complete LIN motion.");
+            throw ExecutionFailed("Could not complete LIN motion.");
         }
     }
 }
@@ -396,13 +392,13 @@ void FrankaInterface::open_gripper()
 {
     moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
     mgi_gripper_->setJointValueTarget(mgi_gripper_->getNamedTargetValues("open"));
-
-    if (mgi_gripper_->plan(gripper_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
+    moveit::core::MoveItErrorCode error_code = mgi_gripper_->plan(gripper_plan);
+    if (error_code == moveit::planning_interface::MoveItErrorCode::SUCCESS)
         mgi_gripper_->move();
     else
     {
         ROS_ERROR("Could not plan gripper motion");
-        throw std::runtime_error("Could not plan gripper motion");
+        throw PlanningFailed(error_code);
     }
 }
 
@@ -410,13 +406,13 @@ void FrankaInterface::close_gripper()
 {
     moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
     mgi_gripper_->setJointValueTarget(mgi_gripper_->getNamedTargetValues("close"));
-
-    if (mgi_gripper_->plan(gripper_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
+    moveit::core::MoveItErrorCode error_code = mgi_gripper_->plan(gripper_plan);
+    if (error_code == moveit::planning_interface::MoveItErrorCode::SUCCESS)
         mgi_gripper_->move();
     else
     {
         ROS_ERROR("Could not plan gripper motion");
-        throw std::runtime_error("Could not plan gripper motion");
+        throw PlanningFailed(error_code);
     }
 }
 
@@ -428,13 +424,13 @@ void FrankaInterface::set_gripper_width(double width)
     finger_width[1] = width;
     moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
     mgi_gripper_->setJointValueTarget(finger_width);
-
-    if (mgi_gripper_->plan(gripper_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
+    moveit::core::MoveItErrorCode error_code = mgi_gripper_->plan(gripper_plan);
+    if (error_code == moveit::planning_interface::MoveItErrorCode::SUCCESS)
         mgi_gripper_->move();
     else
     {
         ROS_ERROR("Could not plan gripper motion");
-        throw std::runtime_error("Could not plan gripper motion");
+        throw PlanningFailed(error_code);
     }
 }
 
@@ -465,14 +461,14 @@ void FrankaInterface::grab_object(double width, double force)
     {
         ROS_INFO("Grab object action did not finish before the time out.");
         gripper_action_client_.cancelGoal();
-        throw std::runtime_error("Grab object action did not finish before the time out.");
+        throw ExecutionFailed("Grab object action did not finish before the time out.");
     }
 
     // check if plan execution was successful
     if (gripper_action_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
     {
         ROS_ERROR_STREAM("Could not grab object successfully");
-        throw std::runtime_error("Could not grab object successfully");
+        throw ExecutionFailed("Could not grab object successfully");
     }
 }
 

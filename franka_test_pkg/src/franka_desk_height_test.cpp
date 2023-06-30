@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "franka_interface/franka_interface.hpp"
 #include "franka_interface/utils.hpp"
+#include "franka_interface/exceptions.hpp"
 
 int main(int argc, char** argv)
 {
