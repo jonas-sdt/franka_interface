@@ -5,9 +5,24 @@
 #include "geometry_msgs/Pose.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include <iostream>
+#include <vector>
 
 namespace franka_interface
 {
+
+    typedef std::vector<double> JointPositions;
+
+    /**
+     * \brief create a joint state goal message
+     * \param q1 joint 1 position in radians
+    */
+    JointPositions make_joint_state_goal(long double q1, long double q2, long double q3, long double q4, long double q5, long double q6, long double q7);
+    
+    /**
+     * \brief create a joint state goal message
+     * \param q1 joint 1 position in radians
+    */
+    JointPositions make_joint_state_goal(double q1, double q2, double q3, double q4, double q5, double q6, double q7);
 
     /**
     * \brief create a pose stamped message
@@ -20,7 +35,7 @@ namespace franka_interface
     * \param qw w component of the quaternion
     * \param frame_id frame id of the pose
     */
-    geometry_msgs::PoseStamped make_pose_stamped(float x, float y, float z, float qx, float qy, float qz, float qw, std::string frame_id);
+    geometry_msgs::PoseStamped make_pose_stamped(double x, double y, double z, double qx, double qy, double qz, double qw, std::string frame_id);
 
     /**
      * \brief create a pose stamped message
@@ -32,7 +47,7 @@ namespace franka_interface
      * \param yaw yaw angle in radians
      * \param frame_id frame id of the pose
      */
-    geometry_msgs::PoseStamped make_pose_stamped(float x, float y, float z, float roll, float pitch, float yaw, std::string frame_id);
+    geometry_msgs::PoseStamped make_pose_stamped(double x, double y, double z, double roll, double pitch, double yaw, std::string frame_id);
 
     /**
      * \brief create a pose message
@@ -44,7 +59,7 @@ namespace franka_interface
      * \param qz z component of the quaternion
      * \param qw w component of the quaternion
      */
-    geometry_msgs::Pose make_pose(float x, float y, float z, float qx, float qy, float qz, float qw);
+    geometry_msgs::Pose make_pose(double x, double y, double z, double qx, double qy, double qz, double qw);
 
     /**
      * \brief create a pose message
@@ -55,7 +70,7 @@ namespace franka_interface
      * \param pitch pitch angle in radians
      * \param yaw yaw angle in radians
      */
-    geometry_msgs::Pose make_pose(float x, float y, float z, float roll, float pitch, float yaw);
+    geometry_msgs::Pose make_pose(double x, double y, double z, double roll, double pitch, double yaw);
 
     /**
      * \brief create a string from a pose stamped message

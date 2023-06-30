@@ -2,7 +2,34 @@
 
 namespace franka_interface
 {
-    geometry_msgs::PoseStamped make_pose_stamped(float x, float y, float z, float qx, float qy, float qz, float qw, std::string frame_id)
+
+    JointPositions make_joint_state_goal(long double q1, long double q2, long double q3, long double q4, long double q5, long double q6, long double q7)
+    {
+        JointPositions joint_positions;
+        joint_positions.push_back((double)q1);
+        joint_positions.push_back((double)q2);
+        joint_positions.push_back((double)q3);
+        joint_positions.push_back((double)q4);
+        joint_positions.push_back((double)q5);
+        joint_positions.push_back((double)q6);
+        joint_positions.push_back((double)q7);
+        return joint_positions;
+    }
+    
+    JointPositions make_joint_state_goal(double q1, double q2, double q3, double q4, double q5, double q6, double q7)
+    {
+        JointPositions joint_positions;
+        joint_positions.push_back(q1);
+        joint_positions.push_back(q2);
+        joint_positions.push_back(q3);
+        joint_positions.push_back(q4);
+        joint_positions.push_back(q5);
+        joint_positions.push_back(q6);
+        joint_positions.push_back(q7);
+        return joint_positions;
+    }
+
+    geometry_msgs::PoseStamped make_pose_stamped(double x, double y, double z, double qx, double qy, double qz, double qw, std::string frame_id)
     {
         geometry_msgs::PoseStamped pose_stamped;
         pose_stamped.pose.position.x = x;
@@ -16,14 +43,14 @@ namespace franka_interface
         return pose_stamped;
     }
 
-    geometry_msgs::PoseStamped make_pose_stamped(float x, float y, float z, float roll, float pitch, float yaw, std::string frame_id)
+    geometry_msgs::PoseStamped make_pose_stamped(double x, double y, double z, double roll, double pitch, double yaw, std::string frame_id)
     {
         tf2::Quaternion q;
         q.setRPY(roll, pitch, yaw);
         return make_pose_stamped(x, y, z, q.x(), q.y(), q.z(), q.w(), frame_id);
     }
 
-    geometry_msgs::Pose make_pose(float x, float y, float z, float qx, float qy, float qz, float qw)
+    geometry_msgs::Pose make_pose(double x, double y, double z, double qx, double qy, double qz, double qw)
     {
         geometry_msgs::Pose pose;
         pose.position.x = x;
@@ -36,7 +63,7 @@ namespace franka_interface
         return pose;
     }
 
-    geometry_msgs::Pose make_pose(float x, float y, float z, float roll, float pitch, float yaw)
+    geometry_msgs::Pose make_pose(double x, double y, double z, double roll, double pitch, double yaw)
     {
         tf2::Quaternion q;
         q.setRPY(roll, pitch, yaw);
