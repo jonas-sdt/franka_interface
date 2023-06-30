@@ -123,7 +123,7 @@ void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string 
 
         if (prompt_before_exec_ || prompt)
         {
-            visual_tools_.prompt("Press 'next' in the RvizVisualToolsGui window to start execution of the lin motion");
+            visual_tools_.prompt("Press 'next' in the RvizVisualToolsGui window to start execution of the ptp motion");
         }
 
         mgi_arm_->execute(plan);
