@@ -4,8 +4,13 @@
 		{
 			"label": "catkin build",
 			"type": "shell",
-			"icon": {"color": "terminal.ansiRed", "id": "wrench"},
-			"runOptions": {"instanceLimit": 1},
+			"icon": {
+				"color": "terminal.ansiRed",
+				"id": "wrench"
+			},
+			"runOptions": {
+				"instanceLimit": 1
+			},
 			"command": "cd ${workspaceFolder} && catkin build --this --cmake-args -DCMAKE_BUILD_TYPE=Debug",
 			"problemMatcher": [],
 			"group": "build"
@@ -13,8 +18,13 @@
 		{
 			"label": "catkin build test pkg",
 			"type": "shell",
-			"icon": {"color": "terminal.ansiBlue", "id": "wrench"},
-			"runOptions": {"instanceLimit": 1},
+			"icon": {
+				"color": "terminal.ansiBlue",
+				"id": "wrench"
+			},
+			"runOptions": {
+				"instanceLimit": 1
+			},
 			"command": "cd ${workspaceFolder} && catkin build franka_example_pkg --cmake-args -DCMAKE_BUILD_TYPE=Debug",
 			"problemMatcher": []
 		},
@@ -23,8 +33,35 @@
 			"type": "shell",
 			"command": "source ../../../devel/setup.bash && roslaunch franka_interface sim.launch",
 			"problemMatcher": [],
-			"dependsOn": ["catkin build test pkg"],
-			"icon": {"color": "terminal.ansiGreen", "id": "run-all"},
+			"dependsOn": [
+				"catkin build test pkg"
+			],
+			"icon": {
+				"color": "terminal.ansiGreen",
+				"id": "run-all"
+			}
+		},
+		{
+			"label": "tf echo",
+			"type": "shell",
+			"command": "source ../../../devel/setup.bash && rosrun tf tf_echo ${input:parent_frame} ${input:child_frame}",
+			"icon": {
+				"color": "terminal.ansiYellow",
+				"id": "globe"
+			},
+			"problemMatcher": []
+		}
+	],
+	"inputs": [
+		{
+			"id": "parent_frame",
+			"description": "parent tf frame",
+			"type": "promptString"
+		},
+		{
+			"id": "child_frame",
+			"description": "child tf frame",
+			"type": "promptString"
 		}
 	]
 }

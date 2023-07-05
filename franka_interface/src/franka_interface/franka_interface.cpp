@@ -50,7 +50,9 @@ namespace franka_interface
     // initialize move group interfaces
     mgi_arm_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>("panda_arm");
     mgi_arm_->setPlanningTime(5.0);
+    mgi_arm_->setPlanningPipelineId("ompl");
     mgi_arm_->setPlannerId("PTP");
+    mgi_arm_->setNumPlanningAttempts(10);
     mgi_arm_->setMaxVelocityScalingFactor(velocity_scaling_factor_);
     mgi_arm_->setMaxAccelerationScalingFactor(acceleration_scaling_factor_);
 
@@ -79,6 +81,13 @@ namespace franka_interface
     goal_pose_transformed.pose = goal_pose.pose;
     tf_buffer_.transform(goal_pose_transformed, goal_pose_transformed, "panda_link0");
 
+    if (activate_visualizations_)
+    {
+      visual_tools_.deleteAllMarkers();
+      visualize_point(goal_pose, "PTP Goal");
+      visual_tools_.trigger();
+    }
+
     mgi_arm_->setEndEffectorLink(end_effector_name);
     mgi_arm_->setMaxVelocityScalingFactor(velocity_scaling_factor_);
     mgi_arm_->setMaxAccelerationScalingFactor(acceleration_scaling_factor_);
@@ -93,8 +102,6 @@ namespace franka_interface
 
     if (activate_visualizations_)
     {
-      visual_tools_.deleteAllMarkers();
-      visualize_point(goal_pose, "PTP Goal");
       visual_tools_.publishTrajectoryLine(plan.trajectory_, joint_model_group);
       visual_tools_.trigger();
     }
@@ -202,7 +209,7 @@ namespace franka_interface
     // check if the goal can be reached by this plan
     if (std::abs(cartesian_path_res.fraction - 1) > 0.0001)
     {
-      ROS_ERROR_STREAM("Can only plan " << cartesian_path_res.fraction << " \% of LIN path. Aborted. Goal Pose was: \n"
+      ROS_ERROR_STREAM("Can only plan " << cartesian_path_res.fraction*100 << " \% of LIN path. Aborted. Goal Pose was: \n"
                                         << goal_pose);
       throw LinPlanningFailedIncomplete(goal_pose, cartesian_path_res.fraction);
     }
@@ -215,7 +222,6 @@ namespace franka_interface
     // execute trajectory
     moveit_msgs::ExecuteTrajectoryGoal execute_trajectory_goal;
     execute_trajectory_goal.trajectory = trajectory;
-
     execute_trajectory_action_client_.sendGoal(execute_trajectory_goal);
 
     // wait for the action to return
@@ -486,10 +492,7 @@ namespace franka_interface
     /* listen to joint state updates as well as changes in attached collision objects
                   and update the internal planning scene accordingly*/
     psm_->startStateMonitor();
-    // // moveit::core::RobotStatePtr robot_state(
-    // //     new moveit::core::RobotState(planning_scene_monitor::LockedPlanningSceneRO(psm)->getCurrentState()));
-    // //
-    // // const moveit::core::JointModelGroup* joint_model_group = robot_state->getJointModelGroup("panda_arm");
+
     // create box primitive for table
     shape_msgs::SolidPrimitive table_primitive;
     table_primitive.type = table_primitive.BOX;
