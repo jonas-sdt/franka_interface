@@ -49,7 +49,34 @@
 				"color": "terminal.ansiYellow",
 				"id": "globe"
 			},
-			"problemMatcher": []
+			"problemMatcher": [],
+			"presentation": {
+				"echo": true,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "dedicated",
+				"clear": true
+			}
+		},
+		{
+			"label": "rqt",
+			"type": "shell",
+			"command": "source ../../../devel/setup.bash && rqt",
+			"icon": {
+				"color": "terminal.ansiYellow",
+				"id": "globe"
+			},
+			"problemMatcher": [],
+			"runOptions": {
+				"instanceLimit": 1
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "dedicated",
+				"clear": true
+			}
 		}
 	],
 	"inputs": [

@@ -346,7 +346,16 @@ Visualization Manager:
         Show Robot Visual: true
       Value: true
       Velocity_Scaling_Factor: 0.1
-    - Alpha: 1
+    - Alpha: 0.5
+      Class: rviz/Axes
+      Enabled: true
+      Length: 0.5
+      Name: World Frame
+      Radius: 0.009999999776482582
+      Reference Frame: world
+      Show Trail: false
+      Value: true
+    - Alpha: 0.5
       Class: rviz/Axes
       Enabled: true
       Length: 0.05000000074505806
@@ -355,6 +364,15 @@ Visualization Manager:
       Reference Frame: panda_hand_tcp
       Show Trail: false
       Value: true
+    - Alpha: 0.5
+      Class: rviz/Axes
+      Enabled: false
+      Length: 0.05000000074505806
+      Name: Camera Frame
+      Radius: 0.009999999776482582
+      Reference Frame: panda_hand_cam
+      Show Trail: false
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -388,9 +406,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.39500004053115845
+      Pitch: 0.2550000250339508
       Target Frame: panda_link0
-      Yaw: 0.2985837161540985
+      Yaw: 0.33858221769332886
     Saved: ~
 Window Geometry:
   Displays:

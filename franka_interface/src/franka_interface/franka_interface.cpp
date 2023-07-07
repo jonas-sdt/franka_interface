@@ -88,10 +88,23 @@ namespace franka_interface
       visual_tools_.trigger();
     }
 
-    mgi_arm_->setEndEffectorLink(end_effector_name);
+    if (end_effector_name != "panda_hand_tcp")
+    {
+      if (has_transform_changed("panda_hand_tcp", end_effector_name))
+      {
+        ROS_ERROR_STREAM("The transform between panda_link0 and " << end_effector_name << " has changed. "
+                                                                   << "This might lead to unexpected behavior.");
+        throw std::runtime_error("Transform between panda_link0 and end effector has changed");
+      }
+
+      // compensate for transform between panda_hand_tcp and end_effector_name
+      goal_pose_transformed = ee_tf(goal_pose_transformed, end_effector_name);
+    }
+
+    mgi_arm_->setEndEffectorLink("panda_hand_tcp");
     mgi_arm_->setMaxVelocityScalingFactor(velocity_scaling_factor_);
     mgi_arm_->setMaxAccelerationScalingFactor(acceleration_scaling_factor_);
-    mgi_arm_->setPoseTarget(goal_pose_transformed, end_effector_name);
+    mgi_arm_->setPoseTarget(goal_pose_transformed);
     moveit::planning_interface::MoveGroupInterface::Plan plan;
     moveit::core::MoveItErrorCode error_code = mgi_arm_->plan(plan);
     if (error_code != moveit::core::MoveItErrorCode::SUCCESS)
@@ -173,6 +186,19 @@ namespace franka_interface
     {
       visual_tools_.deleteAllMarkers();
       visualize_point(goal_pose, "Lin Goal");
+    }
+
+    if (end_effector_name != "panda_hand_tcp")
+    {
+      if (has_transform_changed("panda_hand_tcp", end_effector_name))
+      {
+        ROS_ERROR_STREAM("The transform between panda_link0 and " << end_effector_name << " has changed. "
+                                                                   << "This might lead to unexpected behavior.");
+        throw std::runtime_error("Transform between panda_link0 and end effector has changed");
+      }
+
+      // compensate for transform between panda_hand_tcp and end_effector_name
+      goal_pose = ee_tf(goal_pose, end_effector_name);
     }
 
     // create trajectory
@@ -480,6 +506,74 @@ namespace franka_interface
   std::vector<moveit_msgs::CollisionObject> FrankaInterface::get_collision_objects()
   {
     return custom_collision_objects_;
+  }
+
+  inline geometry_msgs::PoseStamped FrankaInterface::ee_tf(const geometry_msgs::PoseStamped & pose, const std::string & end_effector_name)
+  {
+    // get all poses in panda_link_0 frame
+    geometry_msgs::PoseStamped pose_tf = tf_buffer_.transform(pose, "panda_link0", ros::Duration(1.0));
+
+    geometry_msgs::PoseStamped ee_pose = make_pose_stamped(0,0,0,0,0,0,end_effector_name);
+    ee_pose = tf_buffer_.transform(ee_pose, "panda_link0", ros::Duration(1.0));
+
+    geometry_msgs::PoseStamped tcp_pose = make_pose_stamped(0,0,0,0,0,0,"panda_hand_tcp");
+    tcp_pose = tf_buffer_.transform(tcp_pose, "panda_link0", ros::Duration(1.0));
+    
+  	// compensate for tcp to ee offset
+    geometry_msgs::TransformStamped tf_tcp_ee;
+    tf_tcp_ee.header.frame_id = "panda_link0";
+
+    // difference in translation
+    tf_tcp_ee.transform.translation.x = tcp_pose.pose.position.x - ee_pose.pose.position.x;
+    tf_tcp_ee.transform.translation.y = tcp_pose.pose.position.y - ee_pose.pose.position.y;
+    tf_tcp_ee.transform.translation.z = tcp_pose.pose.position.z - ee_pose.pose.position.z;
+
+    // difference in rotation
+    tf2::Quaternion ee_quat = tf2::Quaternion(ee_pose.pose.orientation.x, ee_pose.pose.orientation.y, ee_pose.pose.orientation.z, ee_pose.pose.orientation.w);
+    tf2::Quaternion tcp_quat = tf2::Quaternion(tcp_pose.pose.orientation.x, tcp_pose.pose.orientation.y, tcp_pose.pose.orientation.z, tcp_pose.pose.orientation.w);
+    tf_tcp_ee.transform.rotation = tf2::toMsg(ee_quat * tcp_quat.inverse());
+
+    tf2::doTransform(pose_tf, pose_tf, tf_tcp_ee);
+
+    return pose_tf;
+  }
+
+  inline bool FrankaInterface::has_transform_changed(const std::string& sourceFrame, const std::string& targetFrame)
+  {
+    // Get the current time
+    const ros::Time currentTime = ros::Time::now();
+
+    // Get the transform 2 seconds ago
+    const ros::Time pastTime = currentTime - ros::Duration(2.0);
+
+    // Lookup the past transform
+    geometry_msgs::TransformStamped pastTransform = tf_buffer_.lookupTransform(
+        targetFrame, sourceFrame, pastTime, ros::Duration(1.0));
+
+    // Lookup the current transform
+    geometry_msgs::TransformStamped currentTransform = tf_buffer_.lookupTransform(
+        targetFrame, sourceFrame, currentTime, ros::Duration(1.0));
+
+    // Define a tolerance threshold for comparison
+    const double tolerance = 0.001; // Adjust the threshold as needed
+
+    // Compare the translation and rotation components
+    double translationDiff = std::abs(
+        pastTransform.transform.translation.x - currentTransform.transform.translation.x) +
+        std::abs(pastTransform.transform.translation.y - currentTransform.transform.translation.y) +
+        std::abs(pastTransform.transform.translation.z - currentTransform.transform.translation.z);
+
+    double rotationDiff = std::abs(
+        pastTransform.transform.rotation.x - currentTransform.transform.rotation.x) +
+        std::abs(pastTransform.transform.rotation.y - currentTransform.transform.rotation.y) +
+        std::abs(pastTransform.transform.rotation.z - currentTransform.transform.rotation.z) +
+        std::abs(pastTransform.transform.rotation.w - currentTransform.transform.rotation.w);
+
+    // Compare the translations and rotations with tolerance
+    if (translationDiff > tolerance || rotationDiff > tolerance) {
+      return true;
+    }
+    return false;
   }
 
   inline void FrankaInterface::init_planning_scene()
