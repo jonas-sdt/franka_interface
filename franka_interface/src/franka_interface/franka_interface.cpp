@@ -93,7 +93,7 @@ namespace franka_interface
       if (has_transform_changed("panda_hand_tcp", end_effector_name))
       {
         ROS_ERROR_STREAM("The transform between panda_link0 and " << end_effector_name << " has changed. "
-                                                                   << "This might lead to unexpected behavior.");
+                                                                  << "This might lead to unexpected behavior.");
         throw std::runtime_error("Transform between panda_link0 and end effector has changed");
       }
 
@@ -193,7 +193,7 @@ namespace franka_interface
       if (has_transform_changed("panda_hand_tcp", end_effector_name))
       {
         ROS_ERROR_STREAM("The transform between panda_link0 and " << end_effector_name << " has changed. "
-                                                                   << "This might lead to unexpected behavior.");
+                                                                  << "This might lead to unexpected behavior.");
         throw std::runtime_error("Transform between panda_link0 and end effector has changed");
       }
 
@@ -235,7 +235,7 @@ namespace franka_interface
     // check if the goal can be reached by this plan
     if (std::abs(cartesian_path_res.fraction - 1) > 0.0001)
     {
-      ROS_ERROR_STREAM("Can only plan " << cartesian_path_res.fraction*100 << " \% of LIN path. Aborted. Goal Pose was: \n"
+      ROS_ERROR_STREAM("Can only plan " << cartesian_path_res.fraction * 100 << " \% of LIN path. Aborted. Goal Pose was: \n"
                                         << goal_pose);
       throw LinPlanningFailedIncomplete(goal_pose, cartesian_path_res.fraction);
     }
@@ -508,18 +508,18 @@ namespace franka_interface
     return custom_collision_objects_;
   }
 
-  inline geometry_msgs::PoseStamped FrankaInterface::ee_tf(const geometry_msgs::PoseStamped & pose, const std::string & end_effector_name)
+  inline geometry_msgs::PoseStamped FrankaInterface::ee_tf(const geometry_msgs::PoseStamped &pose, const std::string &end_effector_name)
   {
     // get all poses in panda_link_0 frame
     geometry_msgs::PoseStamped pose_tf = tf_buffer_.transform(pose, "panda_link0", ros::Duration(1.0));
 
-    geometry_msgs::PoseStamped ee_pose = make_pose_stamped(0,0,0,0,0,0,end_effector_name);
+    geometry_msgs::PoseStamped ee_pose = make_pose_stamped(0, 0, 0, 0, 0, 0, end_effector_name);
     ee_pose = tf_buffer_.transform(ee_pose, "panda_link0", ros::Duration(1.0));
 
-    geometry_msgs::PoseStamped tcp_pose = make_pose_stamped(0,0,0,0,0,0,"panda_hand_tcp");
+    geometry_msgs::PoseStamped tcp_pose = make_pose_stamped(0, 0, 0, 0, 0, 0, "panda_hand_tcp");
     tcp_pose = tf_buffer_.transform(tcp_pose, "panda_link0", ros::Duration(1.0));
-    
-  	// compensate for tcp to ee offset
+
+    // compensate for tcp to ee offset
     geometry_msgs::TransformStamped tf_tcp_ee;
     tf_tcp_ee.header.frame_id = "panda_link0";
 
@@ -538,7 +538,7 @@ namespace franka_interface
     return pose_tf;
   }
 
-  inline bool FrankaInterface::has_transform_changed(const std::string& sourceFrame, const std::string& targetFrame)
+  inline bool FrankaInterface::has_transform_changed(const std::string &sourceFrame, const std::string &targetFrame)
   {
     // Get the current time
     const ros::Time currentTime = ros::Time::now();
@@ -559,18 +559,19 @@ namespace franka_interface
 
     // Compare the translation and rotation components
     double translationDiff = std::abs(
-        pastTransform.transform.translation.x - currentTransform.transform.translation.x) +
-        std::abs(pastTransform.transform.translation.y - currentTransform.transform.translation.y) +
-        std::abs(pastTransform.transform.translation.z - currentTransform.transform.translation.z);
+                                 pastTransform.transform.translation.x - currentTransform.transform.translation.x) +
+                             std::abs(pastTransform.transform.translation.y - currentTransform.transform.translation.y) +
+                             std::abs(pastTransform.transform.translation.z - currentTransform.transform.translation.z);
 
     double rotationDiff = std::abs(
-        pastTransform.transform.rotation.x - currentTransform.transform.rotation.x) +
-        std::abs(pastTransform.transform.rotation.y - currentTransform.transform.rotation.y) +
-        std::abs(pastTransform.transform.rotation.z - currentTransform.transform.rotation.z) +
-        std::abs(pastTransform.transform.rotation.w - currentTransform.transform.rotation.w);
+                              pastTransform.transform.rotation.x - currentTransform.transform.rotation.x) +
+                          std::abs(pastTransform.transform.rotation.y - currentTransform.transform.rotation.y) +
+                          std::abs(pastTransform.transform.rotation.z - currentTransform.transform.rotation.z) +
+                          std::abs(pastTransform.transform.rotation.w - currentTransform.transform.rotation.w);
 
     // Compare the translations and rotations with tolerance
-    if (translationDiff > tolerance || rotationDiff > tolerance) {
+    if (translationDiff > tolerance || rotationDiff > tolerance)
+    {
       return true;
     }
     return false;

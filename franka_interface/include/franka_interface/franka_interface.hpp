@@ -301,11 +301,9 @@ namespace franka_interface
      */
     std::vector<moveit_msgs::CollisionObject> get_collision_objects();
 
-
-    inline geometry_msgs::PoseStamped ee_tf(const geometry_msgs::PoseStamped & pose, const std::string & end_effector_name);
-
   private:
 
+    inline geometry_msgs::PoseStamped ee_tf(const geometry_msgs::PoseStamped & pose, const std::string & end_effector_name);
     inline bool has_transform_changed(const std::string & source_frame, const std::string & target_frame);
     void joint_state_callback(const sensor_msgs::JointState::ConstPtr &msg);
     inline void init_planning_scene();
