@@ -1,0 +1,4 @@
+- builder: doxygen
+  name: franka_interface
+  file_patterns: '*.c *.cpp *.hpp *.cc *.hh *.dox *.md'
+  use_mdfile_as_mainpage: ../readme.md
