@@ -29,6 +29,20 @@
 			"problemMatcher": []
 		},
 		{
+			"label": "catkin_make debug",
+			"type": "shell",
+			"icon": {
+				"color": "terminal.ansiRed",
+				"id": "wrench"
+			},
+			"runOptions": {
+				"instanceLimit": 1
+			},
+			"command": "cd ${workspaceFolder}/../.. && catkin_make -DCMAKE_BUILD_TYPE=Debug",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
 			"label": "roslaunch sim",
 			"type": "shell",
 			"command": "source ../../../devel/setup.bash && roslaunch franka_interface sim.launch",
