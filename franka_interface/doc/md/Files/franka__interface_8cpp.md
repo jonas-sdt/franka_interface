@@ -24,19 +24,16 @@ title: franka_interface/franka_interface.cpp
 namespace franka_interface
 {
 
-  FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_description)
+  FrankaInterface::FrankaInterface(ros::NodeHandle &nh, std::string robot_description, bool prompt_before_exec)
       : nh_(nh),
         acceleration_scaling_factor_(0.1),
         activate_visualizations_(true),
         cartesian_path_service_(nh_.serviceClient<moveit_msgs::GetCartesianPath>("/compute_cartesian_path")),
         execute_trajectory_action_client_("execute_trajectory", true),
         gripper_action_client_("franka_gripper/grasp", true),
-        gripper_homing_action_client_("franka_gripper/homing", true),
-        gripper_move_action_client_("franka_gripper/move", true),
-        joint_state_subscriber_(nh_.subscribe("/joint_states", 1, &FrankaInterface::joint_state_callback, this)),
         max_lin_velocity_(0.1),
         planning_scene_interface_(),
-        prompt_before_exec_(false),
+        prompt_before_exec_(prompt_before_exec),
         tf_listener_(tf_buffer_),
         tolerance_angle_(0.01),
         tolerance_pos_(0.001),
@@ -49,24 +46,18 @@ namespace franka_interface
     planning_pipeline_ = std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_loader->getModel(), nh, "planning_plugin", "request_adapters"),
 
     // initialize planning scene
-        init_planning_scene();
-
-    // gripper positions
-    gripper_open_goal_.width = 0.08;
-    gripper_open_goal_.speed = 0.1;
-
-    gripper_close_goal_.width = 0.0;
-    gripper_close_goal_.speed = 0.1;
+    init_planning_scene();
 
     // joint limits saved as a pair of min and max values
     joint_limits_ = {
-        std::make_pair(-2.897246558, 2.897246558),
-        std::make_pair(-1.832595715, 1.832595715),
-        std::make_pair(-2.897246558, 2.897246558),
-        std::make_pair(-3.071779484, -0.122173048),
-        std::make_pair(-2.879793266, 2.879793266),
-        std::make_pair(0.436332313, 4.625122518),
-        std::make_pair(-3.054326191, 3.054326191)};
+      std::make_pair(-2.897246558,  2.897246558),
+      std::make_pair(-1.832595715,  1.832595715),
+      std::make_pair(-2.897246558,  2.897246558),
+      std::make_pair(-3.071779484, -0.122173048),
+      std::make_pair(-2.879793266,  2.879793266),
+      std::make_pair( 0.436332313,  4.625122518),
+      std::make_pair(-3.054326191,  3.054326191)
+    };
 
     // initialize move group interfaces
     mgi_arm_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>("panda_arm");
@@ -88,7 +79,7 @@ namespace franka_interface
   FrankaInterface::~FrankaInterface()
   {
     visual_tools_.deleteAllMarkers();
-    deactivate_table_collision_check();
+    deactivate_collision_check();
   }
 
   void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name, bool prompt)
@@ -686,13 +677,13 @@ namespace franka_interface
     planning_scene_interface_.applyCollisionObjects(default_collision_objects_);
   }
 
-  inline void FrankaInterface::activate_table_collision_check()
+  inline void FrankaInterface::activate_collision_check()
   {
-    planning_scene_interface_.addCollisionObjects(default_collision_objects_);
-    planning_scene_interface_.addCollisionObjects(custom_collision_objects_);
+    planning_scene_interface_.applyCollisionObjects(default_collision_objects_);
+    planning_scene_interface_.applyCollisionObjects(custom_collision_objects_);
   }
 
-  inline void FrankaInterface::deactivate_table_collision_check()
+  inline void FrankaInterface::deactivate_collision_check()
   {
     // remove default collision objects
     planning_scene_interface_.removeCollisionObjects(std::vector<std::string>({"table", "camera_stand", "monitor"}));
@@ -707,15 +698,10 @@ namespace franka_interface
     planning_scene_interface_.removeCollisionObjects(custom_collision_object_ids);
   }
 
-  void FrankaInterface::joint_state_callback(const sensor_msgs::JointState::ConstPtr &msg)
-  {
-    current_joint_state_ = *msg;
-  }
-
 } // namespace franka_interface
 ```
 
 
 -------------------------------
 
-Updated on 2023-07-07 at 13:14:33 +0200
+Updated on 2023-07-10 at 09:42:18 +0200

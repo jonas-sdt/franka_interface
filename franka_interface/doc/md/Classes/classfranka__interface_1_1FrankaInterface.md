@@ -16,9 +16,11 @@ title: franka_interface::FrankaInterface
 
 |                | Name           |
 | -------------- | -------------- |
+| void | **[activate_collision_check](Classes/classfranka__interface_1_1FrankaInterface.md#function-activate-collision-check)**()<br>Activates the collision check for the planning scene.  |
 | void | **[add_collision_object](Classes/classfranka__interface_1_1FrankaInterface.md#function-add-collision-object)**(moveit_msgs::CollisionObject collision_object)<br>Add a collision object to the planning scene.  |
 | void | **[close_gripper](Classes/classfranka__interface_1_1FrankaInterface.md#function-close-gripper)**()<br>Closes the gripper completely.  |
-| | **[FrankaInterface](Classes/classfranka__interface_1_1FrankaInterface.md#function-frankainterface)**(ros::NodeHandle & nh, std::string robot_description ="robot_description")<br>constructor  |
+| void | **[deactivate_collision_check](Classes/classfranka__interface_1_1FrankaInterface.md#function-deactivate-collision-check)**()<br>Deactivates the collision check for the planning scene.  |
+| | **[FrankaInterface](Classes/classfranka__interface_1_1FrankaInterface.md#function-frankainterface)**(ros::NodeHandle & nh, std::string robot_description ="robot_description", bool prompt_before_exec =false)<br>constructor  |
 | std::vector< moveit_msgs::CollisionObject > | **[get_collision_objects](Classes/classfranka__interface_1_1FrankaInterface.md#function-get-collision-objects)**()<br>Get all custom collision objects in the planning scene.  |
 | void | **[grab_object](Classes/classfranka__interface_1_1FrankaInterface.md#function-grab-object)**(double width, double force)<br>Grasp an object with the gripper.  |
 | void | **[lin_abs](Classes/classfranka__interface_1_1FrankaInterface.md#function-lin-abs)**(geometry_msgs::Pose pose, std::string frame_id ="panda_link0", std::string end_effector_name ="panda_hand_tcp", bool prompt =false)<br>Move the end effector of the robot in a straight line to an absolute pose in Cartesian space.  |
@@ -41,6 +43,14 @@ title: franka_interface::FrankaInterface
 | | **[~FrankaInterface](Classes/classfranka__interface_1_1FrankaInterface.md#function-~frankainterface)**() |
 
 ## Public Functions Documentation
+
+### function activate_collision_check
+
+```cpp
+inline void activate_collision_check()
+```
+
+Activates the collision check for the planning scene. 
 
 ### function add_collision_object
 
@@ -81,12 +91,21 @@ Closes the gripper completely.
 This function sends a command to the gripper to close completely. The gripper will remain closed until a new command is sent to it. Note that this function is not suitable for grasping objects! Use the `grab_object` function instead.
 
 
+### function deactivate_collision_check
+
+```cpp
+inline void deactivate_collision_check()
+```
+
+Deactivates the collision check for the planning scene. 
+
 ### function FrankaInterface
 
 ```cpp
 FrankaInterface(
     ros::NodeHandle & nh,
-    std::string robot_description ="robot_description"
+    std::string robot_description ="robot_description",
+    bool prompt_before_exec =false
 )
 ```
 
@@ -560,4 +579,4 @@ This function creates a coordinate system in RViz to visualize the specified pos
 
 -------------------------------
 
-Updated on 2023-07-07 at 13:14:33 +0200
+Updated on 2023-07-10 at 09:42:18 +0200
