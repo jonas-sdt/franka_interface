@@ -1,0 +1,7 @@
+**/c_cpp_properties.json
+**/launch.json
+**/settings.json
+*.code-workspace
+
+franka_interface/doc/html
+franka_interface/doc/manifest.yaml
