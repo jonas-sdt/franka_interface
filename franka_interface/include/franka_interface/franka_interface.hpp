@@ -297,16 +297,24 @@ namespace franka_interface
      */
     std::vector<moveit_msgs::CollisionObject> get_collision_objects();
 
+    /**
+     * \brief Activates the collision check for the planning scene
+    */
+    inline void activate_collision_check();
+    
+
+    /**
+     * \brief Deactivates the collision check for the planning scene
+    */
+    inline void deactivate_collision_check();
+  
   private:
 
     inline geometry_msgs::PoseStamped ee_tf(const geometry_msgs::PoseStamped & pose, const std::string & end_effector_name);
     inline bool has_transform_changed(const std::string & source_frame, const std::string & target_frame);
     inline void init_planning_scene();
-    inline void activate_table_collision_check();
-    inline void deactivate_table_collision_check();
 
     ros::NodeHandle &nh_;
-
     double acceleration_scaling_factor_;
     bool activate_visualizations_;
     ros::ServiceClient cartesian_path_service_;
