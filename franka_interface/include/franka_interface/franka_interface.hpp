@@ -4,8 +4,6 @@
 #include "actionlib/client/simple_action_client.h"
 #include "franka_interface/exceptions.hpp"
 #include "franka_gripper/GraspAction.h"
-#include "franka_gripper/HomingAction.h"
-#include "franka_gripper/MoveAction.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "moveit_msgs/CollisionObject.h"
@@ -13,11 +11,9 @@
 #include "moveit_msgs/GetCartesianPath.h"
 #include "moveit_msgs/MoveGroupGoal.h"
 #include "moveit_visual_tools/moveit_visual_tools.h"
-#include "moveit/kinematic_constraints/utils.h"
 #include "moveit/move_group_interface/move_group_interface.h"
 #include "moveit/moveit_cpp/moveit_cpp.h"
 #include "moveit/planning_pipeline/planning_pipeline.h"
-#include "moveit/planning_scene_interface/planning_scene_interface.h"
 #include "moveit/planning_scene_interface/planning_scene_interface.h"
 #include "moveit/planning_scene_monitor/planning_scene_monitor.h"
 #include "moveit/robot_model_loader/robot_model_loader.h"
@@ -44,7 +40,7 @@ namespace franka_interface
      * \brief constructor
      * \param nh node handle
      */
-    FrankaInterface(ros::NodeHandle &nh, std::string robot_description = "robot_description");
+    FrankaInterface(ros::NodeHandle &nh, std::string robot_description = "robot_description", bool prompt_before_exec=false);
 
     ~FrankaInterface();
 
@@ -305,7 +301,6 @@ namespace franka_interface
 
     inline geometry_msgs::PoseStamped ee_tf(const geometry_msgs::PoseStamped & pose, const std::string & end_effector_name);
     inline bool has_transform_changed(const std::string & source_frame, const std::string & target_frame);
-    void joint_state_callback(const sensor_msgs::JointState::ConstPtr &msg);
     inline void init_planning_scene();
     inline void activate_table_collision_check();
     inline void deactivate_table_collision_check();
@@ -315,17 +310,11 @@ namespace franka_interface
     double acceleration_scaling_factor_;
     bool activate_visualizations_;
     ros::ServiceClient cartesian_path_service_;
-    sensor_msgs::JointState current_joint_state_;
     std::vector<moveit_msgs::CollisionObject> custom_collision_objects_;
     std::vector<moveit_msgs::CollisionObject> default_collision_objects_;
     actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction> execute_trajectory_action_client_;
     actionlib::SimpleActionClient<franka_gripper::GraspAction> gripper_action_client_;
-    franka_gripper::MoveGoal gripper_close_goal_;
-    actionlib::SimpleActionClient<franka_gripper::HomingAction> gripper_homing_action_client_;
-    actionlib::SimpleActionClient<franka_gripper::MoveAction> gripper_move_action_client_;
-    franka_gripper::MoveGoal gripper_open_goal_;
     std::vector<std::pair<double, double>> joint_limits_;
-    ros::Subscriber joint_state_subscriber_;
     double max_lin_velocity_;
     moveit::planning_interface::MoveGroupInterfacePtr mgi_arm_;
     moveit::planning_interface::MoveGroupInterfacePtr mgi_gripper_;
