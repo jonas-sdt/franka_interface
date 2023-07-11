@@ -31,8 +31,10 @@ title: franka_interface::FrankaInterface
 
 |                | Name           |
 | -------------- | -------------- |
+| void | **[activate_collision_check](Classes/classfranka__interface_1_1FrankaInterface.md#function-activate-collision-check)**()<br>Activates the collision check for the planning scene.  |
 | void | **[add_collision_object](Classes/classfranka__interface_1_1FrankaInterface.md#function-add-collision-object)**(moveit_msgs::CollisionObject collision_object)<br>Add a collision object to the planning scene.  |
 | void | **[close_gripper](Classes/classfranka__interface_1_1FrankaInterface.md#function-close-gripper)**()<br>Closes the gripper completely.  |
+| void | **[deactivate_collision_check](Classes/classfranka__interface_1_1FrankaInterface.md#function-deactivate-collision-check)**()<br>Deactivates the collision check for the planning scene.  |
 | | **[FrankaInterface](Classes/classfranka__interface_1_1FrankaInterface.md#function-frankainterface)**(ros::NodeHandle & nh, std::string robot_description ="robot_description", bool prompt_before_exec =false)<br>constructor  |
 | std::vector< moveit_msgs::CollisionObject > | **[get_collision_objects](Classes/classfranka__interface_1_1FrankaInterface.md#function-get-collision-objects)**()<br>Get all custom collision objects in the planning scene.  |
 | void | **[grab_object](Classes/classfranka__interface_1_1FrankaInterface.md#function-grab-object)**(double width, double force)<br>Grasp an object with the gripper.  |
@@ -56,6 +58,14 @@ title: franka_interface::FrankaInterface
 | | **[~FrankaInterface](Classes/classfranka__interface_1_1FrankaInterface.md#function-~frankainterface)**() |
 
 ## Public Functions Documentation
+
+### function activate_collision_check
+
+```cpp
+inline void activate_collision_check()
+```
+
+Activates the collision check for the planning scene. 
 
 ### function add_collision_object
 
@@ -95,6 +105,14 @@ Closes the gripper completely.
 
 This function sends a command to the gripper to close completely. The gripper will remain closed until a new command is sent to it. Note that this function is not suitable for grasping objects! Use the `grab_object` function instead.
 
+
+### function deactivate_collision_check
+
+```cpp
+inline void deactivate_collision_check()
+```
+
+Deactivates the collision check for the planning scene. 
 
 ### function FrankaInterface
 
@@ -576,10 +594,10 @@ This function creates a coordinate system in RViz to visualize the specified pos
 
 -------------------------------
 
-Updated on 2023-07-10 at 09:26:48 +0200
+Updated on 2023-07-10 at 09:42:18 +0200
 ```
 
 
 -------------------------------
 
-Updated on 2023-07-10 at 09:42:18 +0200
+Updated on 2023-07-11 at 08:37:05 +0200

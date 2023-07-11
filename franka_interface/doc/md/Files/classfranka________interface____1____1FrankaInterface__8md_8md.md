@@ -48,7 +48,7 @@ title: franka_interface::FrankaInterface
 | -------------- | -------------- |
 | void | **[add_collision_object](Classes/classfranka__interface_1_1FrankaInterface.md#function-add-collision-object)**(moveit_msgs::CollisionObject collision_object)<br>Add a collision object to the planning scene.  |
 | void | **[close_gripper](Classes/classfranka__interface_1_1FrankaInterface.md#function-close-gripper)**()<br>Closes the gripper completely.  |
-| | **[FrankaInterface](Classes/classfranka__interface_1_1FrankaInterface.md#function-frankainterface)**(ros::NodeHandle & nh, std::string robot_description ="robot_description")<br>constructor  |
+| | **[FrankaInterface](Classes/classfranka__interface_1_1FrankaInterface.md#function-frankainterface)**(ros::NodeHandle & nh, std::string robot_description ="robot_description", bool prompt_before_exec =false)<br>constructor  |
 | std::vector< moveit_msgs::CollisionObject > | **[get_collision_objects](Classes/classfranka__interface_1_1FrankaInterface.md#function-get-collision-objects)**()<br>Get all custom collision objects in the planning scene.  |
 | void | **[grab_object](Classes/classfranka__interface_1_1FrankaInterface.md#function-grab-object)**(double width, double force)<br>Grasp an object with the gripper.  |
 | void | **[lin_abs](Classes/classfranka__interface_1_1FrankaInterface.md#function-lin-abs)**(geometry_msgs::Pose pose, std::string frame_id ="panda_link0", std::string end_effector_name ="panda_hand_tcp", bool prompt =false)<br>Move the end effector of the robot in a straight line to an absolute pose in Cartesian space.  |
@@ -116,7 +116,8 @@ This function sends a command to the gripper to close completely. The gripper wi
 ```cpp
 FrankaInterface(
     ros::NodeHandle & nh,
-    std::string robot_description ="robot_description"
+    std::string robot_description ="robot_description",
+    bool prompt_before_exec =false
 )
 ```
 
@@ -590,12 +591,6 @@ This function creates a coordinate system in RViz to visualize the specified pos
 
 -------------------------------
 
-Updated on 2023-07-07 at 13:14:33 +0200
-```
-
-
--------------------------------
-
 Updated on 2023-07-10 at 09:26:48 +0200
 ```
 
@@ -603,3 +598,9 @@ Updated on 2023-07-10 at 09:26:48 +0200
 -------------------------------
 
 Updated on 2023-07-10 at 09:42:18 +0200
+```
+
+
+-------------------------------
+
+Updated on 2023-07-11 at 08:37:05 +0200

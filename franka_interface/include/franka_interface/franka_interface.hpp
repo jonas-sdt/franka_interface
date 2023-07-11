@@ -275,7 +275,7 @@ namespace franka_interface
      *
      * \throws std::runtime_error if the command fails.
      */
-    inline void add_collision_object(moveit_msgs::CollisionObject collision_object);
+    void add_collision_object(moveit_msgs::CollisionObject collision_object);
 
     /**
      * \brief Remove a collision object from the planning scene.
@@ -286,7 +286,7 @@ namespace franka_interface
      *
      * \throws std::runtime_error if the command fails.
      */
-    inline void remove_collision_object(std::string id);
+    void remove_collision_object(std::string id);
 
     /**
      * \brief Get all custom collision objects in the planning scene.
@@ -300,13 +300,13 @@ namespace franka_interface
     /**
      * \brief Activates the collision check for the planning scene
     */
-    inline void activate_collision_check();
+    void activate_collision_check();
     
 
     /**
      * \brief Deactivates the collision check for the planning scene
     */
-    inline void deactivate_collision_check();
+    void deactivate_collision_check();
   
   private:
 

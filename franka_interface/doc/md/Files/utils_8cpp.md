@@ -24,6 +24,17 @@ title: franka_interface/utils.cpp
 namespace franka_interface
 {
 
+  moveit_msgs::CollisionObject make_collision_object(std::string id, geometry_msgs::PoseStamped pose, shape_msgs::SolidPrimitive primitive)
+  {
+    moveit_msgs::CollisionObject collision_object;
+    collision_object.header = pose.header;
+    collision_object.id = id;
+    collision_object.primitives.push_back(primitive);
+    collision_object.primitive_poses.push_back(pose.pose);
+    collision_object.operation = collision_object.ADD;
+    return collision_object;
+  }
+
   JointPositions make_joint_state_goal(long double q1, long double q2, long double q3, long double q4, long double q5, long double q6, long double q7)
   {
     JointPositions joint_positions;
@@ -175,4 +186,4 @@ namespace franka_interface
 
 -------------------------------
 
-Updated on 2023-07-10 at 09:42:18 +0200
+Updated on 2023-07-11 at 08:37:05 +0200

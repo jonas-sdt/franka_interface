@@ -94,7 +94,7 @@ namespace franka_interface
   FrankaInterface::~FrankaInterface()
   {
     visual_tools_.deleteAllMarkers();
-    deactivate_table_collision_check();
+    deactivate_collision_check();
   }
 
   void FrankaInterface::ptp_abs(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name, bool prompt)
@@ -692,13 +692,13 @@ namespace franka_interface
     planning_scene_interface_.applyCollisionObjects(default_collision_objects_);
   }
 
-  inline void FrankaInterface::activate_table_collision_check()
+  inline void FrankaInterface::activate_collision_check()
   {
-    planning_scene_interface_.addCollisionObjects(default_collision_objects_);
-    planning_scene_interface_.addCollisionObjects(custom_collision_objects_);
+    planning_scene_interface_.applyCollisionObjects(default_collision_objects_);
+    planning_scene_interface_.applyCollisionObjects(custom_collision_objects_);
   }
 
-  inline void FrankaInterface::deactivate_table_collision_check()
+  inline void FrankaInterface::deactivate_collision_check()
   {
     // remove default collision objects
     planning_scene_interface_.removeCollisionObjects(std::vector<std::string>({"table", "camera_stand", "monitor"}));
@@ -719,10 +719,10 @@ namespace franka_interface
 
 -------------------------------
 
-Updated on 2023-07-10 at 09:26:48 +0200
+Updated on 2023-07-10 at 09:42:18 +0200
 ```
 
 
 -------------------------------
 
-Updated on 2023-07-10 at 09:42:18 +0200
+Updated on 2023-07-11 at 08:37:05 +0200

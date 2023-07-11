@@ -47,7 +47,7 @@ title: franka_interface::FrankaInterface
 ### function activate_collision_check
 
 ```cpp
-inline void activate_collision_check()
+void activate_collision_check()
 ```
 
 Activates the collision check for the planning scene. 
@@ -55,7 +55,7 @@ Activates the collision check for the planning scene.
 ### function add_collision_object
 
 ```cpp
-inline void add_collision_object(
+void add_collision_object(
     moveit_msgs::CollisionObject collision_object
 )
 ```
@@ -94,7 +94,7 @@ This function sends a command to the gripper to close completely. The gripper wi
 ### function deactivate_collision_check
 
 ```cpp
-inline void deactivate_collision_check()
+void deactivate_collision_check()
 ```
 
 Deactivates the collision check for the planning scene. 
@@ -436,7 +436,7 @@ This function generates a motion plan to move the end effector of the robot to t
 ### function remove_collision_object
 
 ```cpp
-inline void remove_collision_object(
+void remove_collision_object(
     std::string id
 )
 ```
@@ -579,4 +579,4 @@ This function creates a coordinate system in RViz to visualize the specified pos
 
 -------------------------------
 
-Updated on 2023-07-10 at 09:42:18 +0200
+Updated on 2023-07-11 at 08:37:04 +0200

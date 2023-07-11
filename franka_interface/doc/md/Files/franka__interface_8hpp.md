@@ -103,16 +103,16 @@ namespace franka_interface
 
     void visualize_point(geometry_msgs::PoseStamped pose, std::string text = "goal");
 
-    inline void add_collision_object(moveit_msgs::CollisionObject collision_object);
+    void add_collision_object(moveit_msgs::CollisionObject collision_object);
 
-    inline void remove_collision_object(std::string id);
+    void remove_collision_object(std::string id);
 
     std::vector<moveit_msgs::CollisionObject> get_collision_objects();
 
-    inline void activate_collision_check();
+    void activate_collision_check();
     
 
-    inline void deactivate_collision_check();
+    void deactivate_collision_check();
   
   private:
 
@@ -153,4 +153,4 @@ namespace franka_interface
 
 -------------------------------
 
-Updated on 2023-07-10 at 09:42:18 +0200
+Updated on 2023-07-11 at 08:37:05 +0200

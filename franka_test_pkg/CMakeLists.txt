@@ -32,6 +32,7 @@ add_executable(arm_example_node src/franka_arm_example_node.cpp)
 add_executable(gripper_example_node src/franka_gripper_example_node.cpp)
 add_executable(desk_height_test_node src/franka_desk_height_test.cpp)
 add_executable(camera_test src/camera_test.cpp)
+add_executable(collision_example_node src/collision_example_node.cpp)
 
 target_link_libraries(arm_example_node
   ${catkin_LIBRARIES}
@@ -43,5 +44,8 @@ target_link_libraries(desk_height_test_node
   ${catkin_LIBRARIES}
 )
 target_link_libraries(camera_test
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(collision_example_node
   ${catkin_LIBRARIES}
 )

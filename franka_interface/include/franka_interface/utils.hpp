@@ -6,11 +6,22 @@
 #include "tf2/LinearMath/Quaternion.h"
 #include <iostream>
 #include <vector>
+#include "moveit_msgs/CollisionObject.h"
+#include "shape_msgs/SolidPrimitive.h"
 
 namespace franka_interface
 {
 
   typedef std::vector<double> JointPositions;
+
+  /**
+   * \brief create a collision object
+   * 
+   * \param id name of the collision object
+   * \param pose pose of the collision object
+   * \param primitive shape of the collision object
+  */
+  moveit_msgs::CollisionObject make_collision_object(std::string id, geometry_msgs::PoseStamped pose, shape_msgs::SolidPrimitive primitive);
 
   /**
    * \brief create a joint state goal message
