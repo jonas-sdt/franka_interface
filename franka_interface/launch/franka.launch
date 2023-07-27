@@ -9,6 +9,8 @@
     <include file="$(find thi_franka_moveit_config)/launch/franka_control.launch" pass_all_args="true">
         <arg name="rviz_tutorial"        value="true"/>
         <arg name="pipeline"             value="pilz_industrial_motion_planner"/>
+        <arg name="robot_ip"        value="fci"/>
+        <arg name="load_gripper"    value="true"/>
     </include>
 
     <!-- launch ompl planning pipeline -->
