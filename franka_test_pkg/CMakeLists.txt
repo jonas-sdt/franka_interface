@@ -33,7 +33,7 @@ add_executable(gripper_example_node src/franka_gripper_example_node.cpp)
 add_executable(desk_height_test_node src/franka_desk_height_test.cpp)
 add_executable(camera_test src/camera_test.cpp)
 add_executable(collision_example_node src/collision_example_node.cpp)
-add_executable(grab_object src/franka_grab_obect_example.cpp)
+add_executable(grab_object src/franka_grab_object_example.cpp)
 add_executable(lin_test src/franka_lin_test.cpp)
 
 target_link_libraries(arm_example_node

@@ -38,7 +38,7 @@
 			"runOptions": {
 				"instanceLimit": 1
 			},
-			"command": "cd ${workspaceFolder}/../.. && catkin_make -DCMAKE_BUILD_TYPE=Debug",
+			"command": "cd ${workspaceFolder}/../../.. && catkin_make -DCMAKE_BUILD_TYPE=Debug",
 			"problemMatcher": [],
 			"group": "build"
 		},
@@ -55,7 +55,7 @@
 		{
 			"label": "roslaunch position_control",
 			"type": "shell",
-			"command": "source ../../../devel/setup.bash && roslaunch franka_interface franka_control.launch",
+			"command": "source ../../../devel/setup.bash && roslaunch franka_interface franka.launch",
 			"problemMatcher": [],
 			"icon": {
 				"color": "terminal.ansiGreen",
@@ -65,7 +65,7 @@
 		{
 			"label": "roslaunch effort_control",
 			"type": "shell",
-			"command": "source ../../../devel/setup.bash && roslaunch franka_interface franka_control.launch transmission:=effort",
+			"command": "source ../../../devel/setup.bash && roslaunch franka_interface franka.launch transmission:=effort",
 			"problemMatcher": [],
 			"icon": {
 				"color": "terminal.ansiGreen",
