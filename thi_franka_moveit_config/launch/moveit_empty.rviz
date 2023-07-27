@@ -16,7 +16,7 @@ Panels:
   - Class: rviz_visual_tools/RvizVisualToolsGui
     Name: RvizVisualToolsGui
 Preferences:
-  PromptSaveOnExit: true
+  PromptSaveOnExit: false
 Toolbars:
   toolButtonStyle: 2
 Visualization Manager:
@@ -366,13 +366,13 @@ Visualization Manager:
       Value: true
     - Alpha: 0.5
       Class: rviz/Axes
-      Enabled: true
+      Enabled: false
       Length: 0.05000000074505806
-      Name: TCP Frame
+      Name: EE Bottom Point
       Radius: 0.009999999776482582
       Reference Frame: panda_hand_bottom
       Show Trail: false
-      Value: true
+      Value: false
     - Alpha: 0.5
       Class: rviz/Axes
       Enabled: false
