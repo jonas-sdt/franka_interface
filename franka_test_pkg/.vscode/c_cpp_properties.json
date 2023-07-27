@@ -7,8 +7,8 @@
             },
             "includePath": [
                 "/opt/ros/noetic/include/**",
-                "/home/dev/ros_ws/src/franka_interface/franka_interface/include/**",
-                "/home/dev/ros_ws/src/moveit_cpp/include/**",
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/../franka_interface/include/**",
                 "/usr/include/**"
             ],
             "name": "ROS",
