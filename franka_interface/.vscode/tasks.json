@@ -47,9 +47,26 @@
 			"type": "shell",
 			"command": "source ../../../devel/setup.bash && roslaunch franka_interface sim.launch",
 			"problemMatcher": [],
-			"dependsOn": [
-				"catkin build test pkg"
-			],
+			"icon": {
+				"color": "terminal.ansiGreen",
+				"id": "run-all"
+			}
+		},
+		{
+			"label": "roslaunch position_control",
+			"type": "shell",
+			"command": "source ../../../devel/setup.bash && roslaunch franka_interface franka_control.launch",
+			"problemMatcher": [],
+			"icon": {
+				"color": "terminal.ansiGreen",
+				"id": "run-all"
+			}
+		},
+		{
+			"label": "roslaunch effort_control",
+			"type": "shell",
+			"command": "source ../../../devel/setup.bash && roslaunch franka_interface franka_control.launch transmission:=effort",
+			"problemMatcher": [],
 			"icon": {
 				"color": "terminal.ansiGreen",
 				"id": "run-all"

@@ -1,5 +1,7 @@
 <launch>
 
+    <arg name="transmission" default="position"/>
+
     <!-- set parameters and custom transforms -->
     <include file="$(dirname)/frames.launch"/>
 
@@ -11,6 +13,7 @@
         <arg name="pipeline"             value="pilz_industrial_motion_planner"/>
         <arg name="robot_ip"        value="fci"/>
         <arg name="load_gripper"    value="true"/>
+        <arg name="transmission"    value="$(arg transmission)"/>
     </include>
 
     <!-- launch ompl planning pipeline -->
