@@ -40,7 +40,7 @@ namespace franka_interface
      * \brief constructor
      * \param nh node handle
      */
-    FrankaInterface(ros::NodeHandle &nh, std::string robot_description = "robot_description", bool prompt_before_exec=false);
+    FrankaInterface(ros::NodeHandle &nh, std::string robot_description = "robot_description", bool prompt_before_exec = false);
 
     ~FrankaInterface();
 
@@ -251,10 +251,11 @@ namespace franka_interface
      *
      * \param width The desired width of the gripper in meters.
      * \param force The desired grasping force in Newtons.
+     * \param prompt If set to true, the user will have to press "Next" in the RViz visualization tools GUI to execute the motion.
      *
      * \throws ExecutionFailed if the execution fails.
      */
-    void grab_object(double width, double force);
+    void grab_object(double width, double force, bool prompt = false);
 
     /**
      * \brief Visualize a pose as a coordinate system in RViz.
@@ -299,19 +300,17 @@ namespace franka_interface
 
     /**
      * \brief Activates the collision check for the planning scene
-    */
+     */
     void activate_collision_check();
-    
 
     /**
      * \brief Deactivates the collision check for the planning scene
-    */
+     */
     void deactivate_collision_check();
-  
-  private:
 
-    inline geometry_msgs::PoseStamped ee_tf(const geometry_msgs::PoseStamped & pose, const std::string & end_effector_name);
-    inline bool has_transform_changed(const std::string & source_frame, const std::string & target_frame);
+  private:
+    inline geometry_msgs::PoseStamped ee_tf(const geometry_msgs::PoseStamped &pose, const std::string &end_effector_name);
+    inline bool has_transform_changed(const std::string &source_frame, const std::string &target_frame);
     inline void init_planning_scene();
 
     ros::NodeHandle &nh_;

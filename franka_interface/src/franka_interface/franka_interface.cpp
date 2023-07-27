@@ -30,14 +30,13 @@ namespace franka_interface
 
     // joint limits saved as a pair of min and max values
     joint_limits_ = {
-      std::make_pair(-2.897246558,  2.897246558),
-      std::make_pair(-1.832595715,  1.832595715),
-      std::make_pair(-2.897246558,  2.897246558),
-      std::make_pair(-3.071779484, -0.122173048),
-      std::make_pair(-2.879793266,  2.879793266),
-      std::make_pair( 0.436332313,  4.625122518),
-      std::make_pair(-3.054326191,  3.054326191)
-    };
+        std::make_pair(-2.897246558, 2.897246558),
+        std::make_pair(-1.832595715, 1.832595715),
+        std::make_pair(-2.897246558, 2.897246558),
+        std::make_pair(-3.071779484, -0.122173048),
+        std::make_pair(-2.879793266, 2.879793266),
+        std::make_pair(0.436332313, 4.625122518),
+        std::make_pair(-3.054326191, 3.054326191)};
 
     // initialize move group interfaces
     mgi_arm_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>("panda_arm");
@@ -51,7 +50,6 @@ namespace franka_interface
     mgi_gripper_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>("panda_hand");
     mgi_gripper_->setPlanningTime(3);
     mgi_gripper_->setPlanningPipelineId("ompl");
-    mgi_gripper_->setPlannerId("PTP");
     mgi_gripper_->setMaxVelocityScalingFactor(0.1);
     mgi_gripper_->setMaxAccelerationScalingFactor(0.1);
   }
@@ -415,7 +413,7 @@ namespace franka_interface
     mgi_gripper_->setJointValueTarget(mgi_gripper_->getNamedTargetValues("close"));
     moveit::core::MoveItErrorCode error_code = mgi_gripper_->plan(gripper_plan);
 
-    if (error_code == moveit::planning_interface::MoveItErrorCode::SUCCESS)
+    if (error_code != moveit::planning_interface::MoveItErrorCode::SUCCESS)
     {
       ROS_ERROR("Could not plan gripper motion");
       throw PlanningFailed(error_code);
@@ -428,13 +426,13 @@ namespace franka_interface
   {
     std::vector<double> finger_width;
     finger_width.resize(2);
-    finger_width[0] = width;
-    finger_width[1] = width;
+    finger_width[0] = width / 2;
+    finger_width[1] = width / 2;
     moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
     mgi_gripper_->setJointValueTarget(finger_width);
     moveit::core::MoveItErrorCode error_code = mgi_gripper_->plan(gripper_plan);
 
-    if (error_code == moveit::planning_interface::MoveItErrorCode::SUCCESS)
+    if (error_code != moveit::planning_interface::MoveItErrorCode::SUCCESS)
     {
       ROS_ERROR("Could not plan gripper motion");
       throw PlanningFailed(error_code);
@@ -443,21 +441,29 @@ namespace franka_interface
     mgi_gripper_->move();
   }
 
-  void FrankaInterface::grab_object(double width, double force)
+  void FrankaInterface::grab_object(double width, double force, bool prompt)
   {
-    // TODO: check if width is within limits
-    // TODO: check if force is within limits
+
+    if (force > 70 || force <= 0)
+    {
+      ROS_ERROR("Force must be between 0 and 70");
+      throw std::invalid_argument("Force must be between 0 and 70");
+    }
 
     franka_gripper::GraspGoal goal;
     goal.width = width;
-    goal.force = 4;
+    goal.force = force;
     goal.speed = 1.0;
     goal.epsilon.inner = 0.01;
     goal.epsilon.outer = 0.01;
 
+    if (prompt_before_exec_ || prompt)
+    {
+      visual_tools_.prompt("Press 'next' in the RvizVisualToolsGui window to start execution of the grab object action");
+    }
+
     gripper_action_client_.sendGoal(goal);
 
-    // wait for the action to return
     // wait for the action to return
     bool finished_before_timeout = gripper_action_client_.waitForResult(ros::Duration(30.0));
 
@@ -593,13 +599,13 @@ namespace franka_interface
     shape_msgs::SolidPrimitive table_primitive;
     table_primitive.type = table_primitive.BOX;
     table_primitive.dimensions.resize(3);
-    table_primitive.dimensions[0] = 1;
-    table_primitive.dimensions[1] = 1;
+    table_primitive.dimensions[0] = 0.815;
+    table_primitive.dimensions[1] = 1.2;
     table_primitive.dimensions[2] = 0.5;
     geometry_msgs::Pose table_pose;
     table_pose.orientation.w = 1.0;
-    table_pose.position.x = 0.3;
-    table_pose.position.y = 0.4;
+    table_pose.position.x = 0.2325;
+    table_pose.position.y = 0.434;
     table_pose.position.z = -0.25;
 
     // create collision object for table
@@ -636,8 +642,8 @@ namespace franka_interface
     shape_msgs::SolidPrimitive monitor_primitive;
     monitor_primitive.type = monitor_primitive.BOX;
     monitor_primitive.dimensions.resize(3);
-    monitor_primitive.dimensions[0] = 0.3;
-    monitor_primitive.dimensions[1] = 0.45;
+    monitor_primitive.dimensions[0] = 0.45;
+    monitor_primitive.dimensions[1] = 0.60;
     monitor_primitive.dimensions[2] = 0.45;
 
     tf2::Quaternion q;
@@ -681,7 +687,7 @@ namespace franka_interface
 
     std::transform(custom_collision_objects_.begin(), custom_collision_objects_.end(), std::back_inserter(collision_objects), [](moveit_msgs::CollisionObject collision_object)
                    { collision_object.operation = collision_object.REMOVE; return collision_object; });
-    
+
     planning_scene_interface_.applyCollisionObjects(collision_objects);
   }
 
