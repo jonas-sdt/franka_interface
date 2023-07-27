@@ -63,7 +63,7 @@ namespace franka_interface
   {
 
   public:
-    FrankaInterface(ros::NodeHandle &nh, std::string robot_description = "robot_description", bool prompt_before_exec=false);
+    FrankaInterface(ros::NodeHandle &nh, std::string robot_description = "robot_description", bool prompt_before_exec = false);
 
     ~FrankaInterface();
 
@@ -99,7 +99,7 @@ namespace franka_interface
 
     void set_gripper_width(double width);
 
-    void grab_object(double width, double force);
+    void grab_object(double width, double force, bool prompt = false);
 
     void visualize_point(geometry_msgs::PoseStamped pose, std::string text = "goal");
 
@@ -110,14 +110,12 @@ namespace franka_interface
     std::vector<moveit_msgs::CollisionObject> get_collision_objects();
 
     void activate_collision_check();
-    
 
     void deactivate_collision_check();
-  
-  private:
 
-    inline geometry_msgs::PoseStamped ee_tf(const geometry_msgs::PoseStamped & pose, const std::string & end_effector_name);
-    inline bool has_transform_changed(const std::string & source_frame, const std::string & target_frame);
+  private:
+    inline geometry_msgs::PoseStamped ee_tf(const geometry_msgs::PoseStamped &pose, const std::string &end_effector_name);
+    inline bool has_transform_changed(const std::string &source_frame, const std::string &target_frame);
     inline void init_planning_scene();
 
     ros::NodeHandle &nh_;
@@ -153,4 +151,4 @@ namespace franka_interface
 
 -------------------------------
 
-Updated on 2023-07-11 at 08:37:05 +0200
+Updated on 2023-07-27 at 16:29:38 +0200

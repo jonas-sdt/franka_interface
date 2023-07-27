@@ -22,7 +22,7 @@ title: franka_interface::FrankaInterface
 | void | **[deactivate_collision_check](Classes/classfranka__interface_1_1FrankaInterface.md#function-deactivate-collision-check)**()<br>Deactivates the collision check for the planning scene.  |
 | | **[FrankaInterface](Classes/classfranka__interface_1_1FrankaInterface.md#function-frankainterface)**(ros::NodeHandle & nh, std::string robot_description ="robot_description", bool prompt_before_exec =false)<br>constructor  |
 | std::vector< moveit_msgs::CollisionObject > | **[get_collision_objects](Classes/classfranka__interface_1_1FrankaInterface.md#function-get-collision-objects)**()<br>Get all custom collision objects in the planning scene.  |
-| void | **[grab_object](Classes/classfranka__interface_1_1FrankaInterface.md#function-grab-object)**(double width, double force)<br>Grasp an object with the gripper.  |
+| void | **[grab_object](Classes/classfranka__interface_1_1FrankaInterface.md#function-grab-object)**(double width, double force, bool prompt =false)<br>Grasp an object with the gripper.  |
 | void | **[lin_abs](Classes/classfranka__interface_1_1FrankaInterface.md#function-lin-abs)**(geometry_msgs::Pose pose, std::string frame_id ="panda_link0", std::string end_effector_name ="panda_hand_tcp", bool prompt =false)<br>Move the end effector of the robot in a straight line to an absolute pose in Cartesian space.  |
 | void | **[lin_abs](Classes/classfranka__interface_1_1FrankaInterface.md#function-lin-abs)**(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name ="panda_hand_tcp", bool prompt =false)<br>Move the end effector of the robot in a straight line to an absolute pose in Cartesian space.  |
 | void | **[lin_abs_subdivided](Classes/classfranka__interface_1_1FrankaInterface.md#function-lin-abs-subdivided)**(geometry_msgs::PoseStamped goal_pose, std::string end_effector_name ="panda_hand_tcp")<br>Move the end effector of the robot in a straight line to an absolute pose in Cartesian space.  |
@@ -134,7 +134,8 @@ This function returns a vector of all custom collision objects in the planning s
 ```cpp
 void grab_object(
     double width,
-    double force
+    double force,
+    bool prompt =false
 )
 ```
 
@@ -143,7 +144,8 @@ Grasp an object with the gripper.
 **Parameters**: 
 
   * **width** The desired width of the gripper in meters. 
-  * **force** The desired grasping force in Newtons.
+  * **force** The desired grasping force in Newtons. 
+  * **prompt** If set to true, the user will have to press "Next" in the RViz visualization tools GUI to execute the motion.
 
 
 **Exceptions**: 
@@ -579,4 +581,4 @@ This function creates a coordinate system in RViz to visualize the specified pos
 
 -------------------------------
 
-Updated on 2023-07-11 at 08:37:04 +0200
+Updated on 2023-07-27 at 16:29:37 +0200

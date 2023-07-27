@@ -41,6 +41,7 @@ title: franka_interface
 
 |                | Name           |
 | -------------- | -------------- |
+| moveit_msgs::CollisionObject | **[make_collision_object](Namespaces/namespacefranka__interface.md#function-make-collision-object)**(std::string id, geometry_msgs::PoseStamped pose, shape_msgs::SolidPrimitive primitive)<br>create a collision object  |
 | [JointPositions](Namespaces/namespacefranka__interface.md#typedef-jointpositions) | **[make_joint_state_goal](Namespaces/namespacefranka__interface.md#function-make-joint-state-goal)**(double q1, double q2, double q3, double q4, double q5, double q6, double q7)<br>create a joint state goal message  |
 | [JointPositions](Namespaces/namespacefranka__interface.md#typedef-jointpositions) | **[make_joint_state_goal](Namespaces/namespacefranka__interface.md#function-make-joint-state-goal)**(long double q1, long double q2, long double q3, long double q4, long double q5, long double q6, long double q7)<br>create a joint state goal message  |
 | geometry_msgs::Pose | **[make_pose](Namespaces/namespacefranka__interface.md#function-make-pose)**(double x, double y, double z, double qx, double qy, double qz, double qw)<br>create a pose message  |
@@ -73,6 +74,25 @@ typedef std::vector<double> franka_interface::JointPositions;
 
 
 ## Functions Documentation
+
+### function make_collision_object
+
+```cpp
+moveit_msgs::CollisionObject make_collision_object(
+    std::string id,
+    geometry_msgs::PoseStamped pose,
+    shape_msgs::SolidPrimitive primitive
+)
+```
+
+create a collision object 
+
+**Parameters**: 
+
+  * **id** name of the collision object 
+  * **pose** pose of the collision object 
+  * **primitive** shape of the collision object 
+
 
 ### function make_joint_state_goal
 
@@ -370,10 +390,10 @@ create a string from a pose message
 
 -------------------------------
 
-Updated on 2023-07-10 at 09:42:18 +0200
+Updated on 2023-07-11 at 08:37:04 +0200
 ```
 
 
 -------------------------------
 
-Updated on 2023-07-11 at 08:37:05 +0200
+Updated on 2023-07-27 at 16:29:38 +0200

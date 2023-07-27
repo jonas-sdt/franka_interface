@@ -514,13 +514,13 @@ namespace franka_interface
     visual_tools_.trigger();
   }
 
-  inline void FrankaInterface::add_collision_object(moveit_msgs::CollisionObject collision_object)
+  void FrankaInterface::add_collision_object(moveit_msgs::CollisionObject collision_object)
   {
     custom_collision_objects_.push_back(collision_object);
     planning_scene_interface_.addCollisionObjects(std::vector<moveit_msgs::CollisionObject>({collision_object}));
   }
 
-  inline void FrankaInterface::remove_collision_object(std::string id)
+  void FrankaInterface::remove_collision_object(std::string id)
   {
     // TODO: check if object with id exists, otherwise throw error
 
@@ -692,13 +692,13 @@ namespace franka_interface
     planning_scene_interface_.applyCollisionObjects(default_collision_objects_);
   }
 
-  inline void FrankaInterface::activate_collision_check()
+  void FrankaInterface::activate_collision_check()
   {
     planning_scene_interface_.applyCollisionObjects(default_collision_objects_);
     planning_scene_interface_.applyCollisionObjects(custom_collision_objects_);
   }
 
-  inline void FrankaInterface::deactivate_collision_check()
+  void FrankaInterface::deactivate_collision_check()
   {
     // remove default collision objects
     planning_scene_interface_.removeCollisionObjects(std::vector<std::string>({"table", "camera_stand", "monitor"}));
@@ -719,10 +719,10 @@ namespace franka_interface
 
 -------------------------------
 
-Updated on 2023-07-10 at 09:42:18 +0200
+Updated on 2023-07-11 at 08:37:05 +0200
 ```
 
 
 -------------------------------
 
-Updated on 2023-07-11 at 08:37:05 +0200
+Updated on 2023-07-27 at 16:29:38 +0200

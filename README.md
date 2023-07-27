@@ -33,7 +33,7 @@ sudo apt install ros-noetic-rviz-visual-tools ros-noetic-moveit-visual-tools ros
 
 ### Creating a project
 
-Each project should be a separate ROS package. This package needs to depend on the `franka_interface` package.
+Each project should be created in a separate ROS package. This package needs to depend on the `franka_interface` package.
 
 ### Writing a program
 
@@ -41,16 +41,22 @@ Take a look at the [template program](franka_test_pkg/src/template_node.cpp). It
 
 ### Running a program
 
-To run your program you have to start either the simulation moveit environment or the real robot moveit environment. To start the simulation environment run the following command:
+To run your program you have to either start the simulation stack or the franka control stack environment. To start the simulation stack run the following command:
 
 ```bash
 roslaunch franka_interface sim.launch
 ```
 
-To start the real robot environment run the following command:
+To start the franka control stack run the following command:
 
 ```bash
 roslaunch franka_interface franka.launch
+```
+
+To start the franka control stack with effort control run the following command:
+
+```bash
+roslaunch franka_interface franka.launch transmission:=effort
 ```
 
 Afterwards you can run your program.

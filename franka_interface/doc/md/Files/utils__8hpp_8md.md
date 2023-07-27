@@ -42,11 +42,15 @@ title: franka_interface/utils.hpp
 #include "tf2/LinearMath/Quaternion.h"
 #include <iostream>
 #include <vector>
+#include "moveit_msgs/CollisionObject.h"
+#include "shape_msgs/SolidPrimitive.h"
 
 namespace franka_interface
 {
 
   typedef std::vector<double> JointPositions;
+
+  moveit_msgs::CollisionObject make_collision_object(std::string id, geometry_msgs::PoseStamped pose, shape_msgs::SolidPrimitive primitive);
 
   JointPositions make_joint_state_goal(long double q1, long double q2, long double q3, long double q4, long double q5, long double q6, long double q7);
 
@@ -96,10 +100,10 @@ namespace franka_interface
 
 -------------------------------
 
-Updated on 2023-07-10 at 09:42:18 +0200
+Updated on 2023-07-11 at 08:37:05 +0200
 ```
 
 
 -------------------------------
 
-Updated on 2023-07-11 at 08:37:04 +0200
+Updated on 2023-07-27 at 16:29:38 +0200
