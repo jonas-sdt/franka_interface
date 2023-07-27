@@ -366,6 +366,15 @@ Visualization Manager:
       Value: true
     - Alpha: 0.5
       Class: rviz/Axes
+      Enabled: true
+      Length: 0.05000000074505806
+      Name: TCP Frame
+      Radius: 0.009999999776482582
+      Reference Frame: panda_hand_bottom
+      Show Trail: false
+      Value: true
+    - Alpha: 0.5
+      Class: rviz/Axes
       Enabled: false
       Length: 0.05000000074505806
       Name: Camera Frame
@@ -389,25 +398,26 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/FrameAligned
+      Class: rviz/Orbit
+      Distance: 1.25
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Field of View: 0.7853981852531433
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
-      Lock Camera: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 2.6999998092651367
-      Point towards: arbitrary
-      Position:
-        X: 1.5
-        Y: 0.5
-        Z: 1
-      Roll: -3.140796422958374
-      Target Frame: world
-      Yaw: 0.3100000321865082
+      Pitch: 0.3165920078754425
+      Target Frame: panda_hand_tcp
+      Yaw: 0.7850000262260437
     Saved:
       - Class: rviz/FrameAligned
         Enable Stereo Rendering:
@@ -481,6 +491,26 @@ Visualization Manager:
         Target Frame: world
         X: 0.30000001192092896
         Y: 0.44999998807907104
+      - Class: rviz/Orbit
+        Distance: 1.25
+        Enable Stereo Rendering:
+          Stereo Eye Separation: 0.05999999865889549
+          Stereo Focal Distance: 1
+          Swap Stereo Eyes: false
+          Value: false
+        Field of View: 0.7853981852531433
+        Focal Point:
+          X: 0
+          Y: 0
+          Z: 0
+        Focal Shape Fixed Size: true
+        Focal Shape Size: 0.05000000074505806
+        Invert Z Axis: false
+        Name: Orbit TCP
+        Near Clip Distance: 0.009999999776482582
+        Pitch: 0.3165920078754425
+        Target Frame: panda_hand_tcp
+        Yaw: 0.7850000262260437
 Window Geometry:
   Displays:
     collapsed: false

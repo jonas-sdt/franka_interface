@@ -23,6 +23,7 @@ namespace franka_interface
     robot_model_loader::RobotModelLoaderPtr robot_model_loader(new robot_model_loader::RobotModelLoader("robot_description"));
     psm_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_model_loader);
     planning_pipeline_ = std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_loader->getModel(), nh, "planning_plugin", "request_adapters"),
+    robot_model_loader.reset();
 
     // initialize planning scene
     init_planning_scene();
@@ -57,6 +58,15 @@ namespace franka_interface
 
   FrankaInterface::~FrankaInterface()
   {
+    psm_->stopPublishingPlanningScene();
+    psm_->stopStateMonitor();
+    psm_->stopSceneMonitor();
+
+    // decontructing the planning scene monitor causes the following error message:
+    // "Attempting to unload /opt/ros/noetic/lib/libmoveit_kdl_kinematics_plugin.so"
+    ROS_WARN("Ingore the following error message:");
+    psm_.reset();
+
     visual_tools_.deleteAllMarkers();
     deactivate_collision_check();
   }
@@ -664,17 +674,15 @@ namespace franka_interface
 
   void FrankaInterface::deactivate_collision_check()
   {
-    // remove default collision objects
-    planning_scene_interface_.removeCollisionObjects(std::vector<std::string>({"table", "camera_stand", "monitor"}));
+    std::vector<moveit_msgs::CollisionObject> collision_objects;
 
-    // put all custom collision object ids into vector
-    std::vector<std::string> custom_collision_object_ids;
-    std::transform(custom_collision_objects_.begin(), custom_collision_objects_.end(), std::back_inserter(custom_collision_object_ids),
-                   [](auto &&obj)
-                   { return obj.id; });
+    std::transform(default_collision_objects_.begin(), default_collision_objects_.end(), std::back_inserter(collision_objects), [](moveit_msgs::CollisionObject collision_object)
+                   { collision_object.operation = collision_object.REMOVE; return collision_object; });
 
-    // remove custom collision objects
-    planning_scene_interface_.removeCollisionObjects(custom_collision_object_ids);
+    std::transform(custom_collision_objects_.begin(), custom_collision_objects_.end(), std::back_inserter(collision_objects), [](moveit_msgs::CollisionObject collision_object)
+                   { collision_object.operation = collision_object.REMOVE; return collision_object; });
+    
+    planning_scene_interface_.applyCollisionObjects(collision_objects);
   }
 
 } // namespace franka_interface

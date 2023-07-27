@@ -23,11 +23,12 @@ This ROS package depends on the following ROS packages:
 - `rviz_visual_tools`
 - `moveit_visual_tool`
 - `moveit`
+- `franka_ros`
 
 To install the dependencies run the following command:
 
 ```bash
-sudo apt install ros-noetic-rviz-visual-tools ros-noetic-moveit-visual-tools ros-noetic-moveit
+sudo apt install ros-noetic-rviz-visual-tools ros-noetic-moveit-visual-tools ros-noetic-moveit ros-noetic-franka-ros
 ```
 
 ### Creating a project

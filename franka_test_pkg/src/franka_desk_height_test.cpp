@@ -16,7 +16,7 @@ int main(int argc, char** argv)
     FrankaInterface robot(nh);
 
     // Put code that should run once here
-    auto start_pos = make_pose_stamped(30_cm, 0_m, 5_cm, 0_deg, 180_deg, 0_deg, "world");
+    auto start_pos = make_pose_stamped(30_cm, 0_m, 5_cm, 180_deg, 0_deg, 180_deg, "world");
     auto step_1 = make_pose(-35_cm,  0_cm, 0_cm, 0_deg, 0_deg, 0_deg);
     auto step_2 = make_pose(  0_cm, 45_cm, 0_cm, 0_deg, 0_deg, 0_deg);
     auto step_3 = make_pose( 35_cm,  0_cm, 0_cm, 0_deg, 0_deg, 0_deg);

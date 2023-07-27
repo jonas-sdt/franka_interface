@@ -4,8 +4,14 @@
     <!-- world frame -->
     <node pkg="tf" type="static_transform_publisher" name="world_to_link0" args="0.0 0.0 0.01045 0 0.014 -0.009 world panda_link0 100" />
 
-    <!-- cameras -->
+    <!-- additional TCPs -->
     <node pkg="tf" type="static_transform_publisher" name="panda_hand_to_cam" args="0.05 0.0 -0.05 0.0 0.0 0.0 panda_hand_tcp panda_hand_cam 100" />
+    <node pkg="tf" type="static_transform_publisher" name="panda_hand_to_hand_bottom" args="0.0 0.0 0.01 0.0 0.0 0.0 panda_hand_tcp panda_hand_bottom 100" />
+    
+    
+    <!-- additional global frames -->
     <!-- <node pkg="tf" type="static_transform_publisher" name="world_to_cam" args="0.0 0.0 0.0 0.0 0.0 0.0 world world_cam 100" /> -->
+
+
 
 </launch>
